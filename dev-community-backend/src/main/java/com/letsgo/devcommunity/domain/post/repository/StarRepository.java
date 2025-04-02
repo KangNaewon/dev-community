@@ -1,6 +1,6 @@
-package com.letsgo.devcommunity.post.repository;
+package com.letsgo.devcommunity.domain.post.repository;
 
-import com.letsgo.devcommunity.post.entity.PostStar;
+import com.letsgo.devcommunity.domain.post.entity.PostStar;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

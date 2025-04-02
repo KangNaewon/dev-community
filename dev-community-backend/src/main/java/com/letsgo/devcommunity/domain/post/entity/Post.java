@@ -1,6 +1,5 @@
-package com.letsgo.devcommunity.post.entity;
+package com.letsgo.devcommunity.domain.post.entity;
 
-import com.letsgo.devcommunity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 

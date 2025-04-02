@@ -1,8 +1,8 @@
-package com.letsgo.devcommunity.post;
+package com.letsgo.devcommunity.domain.post.controller;
 
-import com.letsgo.devcommunity.post.entity.Comment;
-import com.letsgo.devcommunity.post.entity.Post;
-import lombok.RequiredArgsConstructor;
+import com.letsgo.devcommunity.domain.post.entity.Comment;
+import com.letsgo.devcommunity.domain.post.entity.Post;
+import com.letsgo.devcommunity.domain.post.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,15 +1,13 @@
-package com.letsgo.devcommunity.post;
+package com.letsgo.devcommunity.domain.post.service;
 
-import com.letsgo.devcommunity.post.entity.Comment;
-import com.letsgo.devcommunity.post.entity.Post;
-import com.letsgo.devcommunity.post.entity.PostStar;
-import com.letsgo.devcommunity.post.repository.PostRepository;
-import com.letsgo.devcommunity.post.repository.StarRepository;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.ast.tree.expression.Star;
+import com.letsgo.devcommunity.domain.post.entity.Comment;
+import com.letsgo.devcommunity.domain.post.entity.Post;
+import com.letsgo.devcommunity.domain.post.entity.PostStar;
+import com.letsgo.devcommunity.domain.post.repository.PostRepository;
+import com.letsgo.devcommunity.domain.post.repository.StarRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.letsgo.devcommunity.post.repository.CommentRepository;
+import com.letsgo.devcommunity.domain.post.repository.CommentRepository;
 
 import java.util.List;
 

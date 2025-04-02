@@ -1,4 +1,4 @@
-package com.letsgo.devcommunity.user;
+package com.letsgo.devcommunity.UserMockUp;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

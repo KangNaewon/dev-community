@@ -1,4 +1,4 @@
-package com.letsgo.devcommunity.user;
+package com.letsgo.devcommunity.UserMockUp;
 
 import jakarta.persistence.*;
 import lombok.*;

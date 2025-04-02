@@ -1,4 +1,4 @@
-package com.letsgo.devcommunity.post.entity;
+package com.letsgo.devcommunity.domain.post.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
