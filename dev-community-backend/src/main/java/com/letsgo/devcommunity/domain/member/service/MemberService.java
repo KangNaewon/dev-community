@@ -39,7 +39,7 @@ public class MemberService {
     }
 
     private void validateDuplicateEmail(String email) {
-        if (memberRepository.exitsByEmail(email)) {
+        if (memberRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("이미 가입된 이메일입니다.");
         }
     }

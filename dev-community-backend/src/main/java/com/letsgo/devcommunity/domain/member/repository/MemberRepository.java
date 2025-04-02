@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
     boolean existsByLoginId(String loginId);
-    boolean exitsByEmail(String email);
+    boolean existsByEmail(String email);
 }
