@@ -26,7 +26,7 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
-    public Post create(Post post) {
+    public Post createPost(Post post) {
         return postRepository.save(post);
     }
 
@@ -39,14 +39,14 @@ public class PostService {
         return postRepository.findAll();
     }
 
-    public Post update(Long id, Post updatedPost) {
+    public Post updatePost(Long id, Post updatedPost) {
         Post post = findById(id);
         post.setTitle(updatedPost.getTitle());
         post.setContent(updatedPost.getContent());
         return postRepository.save(post);
     }
 
-    public void delete(Long id) {
+    public void deletePost(Long id) {
         postRepository.deleteById(id);
     }
 

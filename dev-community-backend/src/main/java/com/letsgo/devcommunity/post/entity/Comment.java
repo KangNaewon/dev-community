@@ -1,9 +1,6 @@
 package com.letsgo.devcommunity.post.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Bean;
@@ -22,5 +19,10 @@ public class Comment {
     private Long user_id;
     private Long post_id;
     private LocalDateTime created_at;
+
+    @PrePersist
+    protected void onCreate() {
+        this.created_at = LocalDateTime.now();
+    }
 
 }

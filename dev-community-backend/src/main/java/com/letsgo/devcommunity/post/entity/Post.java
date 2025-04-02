@@ -20,12 +20,9 @@ public class Post {
     @Column(nullable = false)
     private String title;
 
-    @Lob
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Long user_id;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

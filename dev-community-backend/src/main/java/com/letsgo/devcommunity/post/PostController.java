@@ -19,12 +19,12 @@ public class PostController {
     }
 
     @PostMapping
-    public Post create(@RequestBody Post post) {
-        return postService.create(post);
+    public Post createPost(@RequestBody Post post) {
+        return postService.createPost(post);
     }
 
     @GetMapping("/{postId}")
-    public Post getOne(@PathVariable Long id) {
+    public Post getOne(@PathVariable("postId") Long id) {
         return postService.findById(id);
     }
 
@@ -34,32 +34,32 @@ public class PostController {
     }
 
     @PutMapping("/{postId}")
-    public Post update(@PathVariable Long id, @RequestBody Post post) {
-        return postService.update(id,post);
+    public Post updatePost(@PathVariable("postId") Long id, @RequestBody Post post) {
+        return postService.updatePost(id,post);
     }
 
     @DeleteMapping("/{postId}")
-    public void delete(@PathVariable Long id) {
-        postService.delete  (id);
+    public void deletePost(@PathVariable("postId") Long id) {
+        postService.deletePost(id);
     }
 
     @PostMapping("/{postId}/comment")
-    public Comment createComment(@PathVariable Long id, @RequestBody Comment comment){
+    public Comment createComment(@PathVariable("postId") Long id, @RequestBody Comment comment){
         return postService.createComment(id, comment);
     }
 
-    @DeleteMapping("/{commentId}")
-    public void deleteComment(@PathVariable Long id) {
+    @DeleteMapping("/comment/{commentId}")
+    public void deleteComment(@PathVariable("commentId") Long id) {
         postService.deleteComment(id);
     }
 
     @PostMapping("/{postId}/star")
-    public void createStar(@PathVariable Long id) {
+    public void createStar(@PathVariable("postId") Long id) {
         postService.createStar(id, 1L);
     }
 
     @DeleteMapping("/{postId}/star")
-    public void deleteStar(@PathVariable Long id){
+    public void deleteStar(@PathVariable("postId") Long id){
         postService.deleteStar(id, 1L);
     }
 
