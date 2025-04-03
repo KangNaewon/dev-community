@@ -33,7 +33,12 @@ const PopularPosts = () => {
       
       <main className="posts-main">
         {currentPosts.map(post => (
-          <div key={post.id} className="post-item">
+          <div
+            key={post.id}
+            className="post-item"
+            onClick={() => navigate(`/post/${post.id}`)} // 게시글 ID를 기반으로 상세 페이지로 이동
+            style={{ cursor: 'pointer' }} // 클릭 가능하도록 커서 스타일 추가
+          >
             <div className="post-content">
               <h3 className="post-title">{post.title}</h3>
               <div className="post-meta">

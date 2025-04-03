@@ -20,6 +20,10 @@ const AllPosts = () => {
   const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
+  const handlePostClick = (id) => {
+    navigate(`/post/${id}`); // 게시글 ID를 기반으로 상세 페이지로 이동
+  };
+
   return (
     <div className="posts-page">
       <header className="posts-header">
@@ -31,7 +35,12 @@ const AllPosts = () => {
       
       <main className="posts-main">
         {currentPosts.map(post => (
-          <div key={post.id} className="post-item">
+          <div 
+            key={post.id} 
+            className="post-item" 
+            onClick={() => handlePostClick(post.id)} // 클릭 이벤트 추가
+            style={{ cursor: 'pointer' }} // 클릭 가능하도록 스타일 추가
+          >
             <div className="post-content">
               <h3 className="post-title">{post.title}</h3>
               <div className="post-meta">

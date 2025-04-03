@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './TempPageStyles.css';  // 이 파일을 사용
+import './TempPageStyles.css';
 
 const TempPage = () => {
   const navigate = useNavigate();
@@ -12,22 +12,13 @@ const TempPage = () => {
   // 로그아웃 처리 함수
   const handleLogout = async () => {
     try {
-      // 서버에 로그아웃 요청 보내기
       await axios.post('/auth/logout');
-      
-      // 로컬 스토리지에서 사용자 정보 삭제
       localStorage.removeItem('user');
-      
-      // 로그인 페이지로 리다이렉트
       navigate('/');
     } catch (error) {
       console.error('로그아웃 실패:', error);
-      
-      // 에러가 있더라도 로컬에서는 로그아웃 처리
       localStorage.removeItem('user');
       navigate('/');
-      
-      // 에러 메시지 설정 (필요시 화면에 표시)
       if (error.response?.status === 401) {
         setLogoutError('이미 로그아웃되었거나 세션이 만료되었습니다.');
       } else {
@@ -36,7 +27,7 @@ const TempPage = () => {
     }
   };
 
-  // 게시글 더미 데이터 (변수명 변경)
+  // 게시글 더미 데이터
   const allPosts = [
     { id: 1, title: "React 18의 새로운 기능들", likes: 256, author: "김개발", date: "2023-05-15" },
     { id: 2, title: "Next.js vs React - 언제 무엇을 사용해야 할까?", likes: 198, author: "이프론트", date: "2023-05-14" },
@@ -49,6 +40,10 @@ const TempPage = () => {
     { id: 9, title: "클린 코드 작성법 - 가독성 높은 코드 만들기", likes: 98, author: "조클린", date: "2023-05-07" },
     { id: 10, title: "프로그래밍 언어 트렌드 2023", likes: 87, author: "신트렌드", date: "2023-05-06" }
   ];
+
+  const handlePostClick = (id) => {
+    navigate(`/post/${id}`); // 게시글 ID를 기반으로 상세 페이지로 이동
+  };
 
   return (
     <div className="community-page">
@@ -96,7 +91,12 @@ const TempPage = () => {
             </div>
             <div className="post-list">
               {allPosts.slice(0, 8).map(post => (
-                <div key={post.id} className="post-item">
+                <div 
+                  key={post.id} 
+                  className="post-item" 
+                  onClick={() => handlePostClick(post.id)} // 클릭 이벤트 추가
+                  style={{ cursor: 'pointer' }} // 클릭 가능하도록 스타일 추가
+                >
                   <div className="post-content">
                     <h3 className="post-title">{post.title}</h3>
                     <div className="post-meta">
@@ -125,7 +125,12 @@ const TempPage = () => {
             </div>
             <div className="post-list">
               {allPosts.slice(0, 8).map(post => (
-                <div key={post.id} className="post-item">
+                <div 
+                  key={post.id} 
+                  className="post-item" 
+                  onClick={() => handlePostClick(post.id)} // 클릭 이벤트 추가
+                  style={{ cursor: 'pointer' }} // 클릭 가능하도록 스타일 추가
+                >
                   <div className="post-content">
                     <h3 className="post-title">{post.title}</h3>
                     <div className="post-meta">
