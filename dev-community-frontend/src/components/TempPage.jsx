@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './TempPageStyles.css';
+import './TempPageStyles.css';  // 이 파일을 사용
 
 const TempPage = () => {
   const navigate = useNavigate();
   const [logoutError, setLogoutError] = useState('');
+  const [showAllPopular, setShowAllPopular] = useState(false);
+  const [showAllPosts, setShowAllPosts] = useState(false);
 
   // 로그아웃 처리 함수
   const handleLogout = async () => {
@@ -81,26 +83,65 @@ const TempPage = () => {
       </div>
 
       <main className="community-main">
-        <section className="posts-section">
-          <h2>전체 게시글</h2>
-          <div className="post-list">
-            {allPosts.map(post => (
-              <div key={post.id} className="post-item">
-                <div className="post-content">
-                  <h3 className="post-title">{post.title}</h3>
-                  <div className="post-meta">
-                    <span className="post-author">{post.author}</span>
-                    <span className="post-date">{post.date}</span>
+        <div className="posts-container">
+          <section className="posts-section popular-posts">
+            <div className="section-header">
+              <h2>인기 게시글</h2>
+              <button 
+                className="show-more-btn"
+                onClick={() => navigate('/popular-posts')}
+              >
+                <i className="bx bx-plus"></i>
+              </button>
+            </div>
+            <div className="post-list">
+              {allPosts.slice(0, 8).map(post => (
+                <div key={post.id} className="post-item">
+                  <div className="post-content">
+                    <h3 className="post-title">{post.title}</h3>
+                    <div className="post-meta">
+                      <span className="post-author">{post.author}</span>
+                      <span className="post-date">{post.date}</span>
+                    </div>
+                  </div>
+                  <div className="post-likes">
+                    <i className="bx bx-like"></i>
+                    <span>{post.likes}</span>
                   </div>
                 </div>
-                <div className="post-likes">
-                  <i className="bx bx-like"></i>
-                  <span>{post.likes}</span>
+              ))}
+            </div>
+          </section>
+
+          <section className="posts-section all-posts">
+            <div className="section-header">
+              <h2>전체 게시글</h2>
+              <button 
+                className="show-more-btn"
+                onClick={() => navigate('/all-posts')}
+              >
+                <i className="bx bx-plus"></i>
+              </button>
+            </div>
+            <div className="post-list">
+              {allPosts.slice(0, 8).map(post => (
+                <div key={post.id} className="post-item">
+                  <div className="post-content">
+                    <h3 className="post-title">{post.title}</h3>
+                    <div className="post-meta">
+                      <span className="post-author">{post.author}</span>
+                      <span className="post-date">{post.date}</span>
+                    </div>
+                  </div>
+                  <div className="post-likes">
+                    <i className="bx bx-like"></i>
+                    <span>{post.likes}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        </div>
 
         <aside className="community-sidebar">
           <div className="sidebar-section user-profile">
