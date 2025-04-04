@@ -20,9 +20,7 @@ public class MemberService {
     private final EmailVerificationStore emailVerificationStore;
 
     public void signUp(SignUpRequest request) {
-        if(!emailVerificationStore.isVerified(request.email())) {
-            throw new IllegalArgumentException("이메일 인증이 완료되지 않았습니다.");
-        }
+        validateEmailVerification(request.email());
         validateDuplicateLoginId(request.loginId());
         validateDuplicateEmail(request.email());
 
@@ -48,6 +46,13 @@ public class MemberService {
 
         return member;
     }
+
+    private void validateEmailVerification(String email) {
+        if (!emailVerificationStore.isVerified(email)) {
+            throw new IllegalArgumentException("이메일 인증이 완료되지 않았습니다.");
+        }
+    }
+
 
     private void validateDuplicateLoginId(String loginId) {
         if (memberRepository.existsByLoginId(loginId)) {
