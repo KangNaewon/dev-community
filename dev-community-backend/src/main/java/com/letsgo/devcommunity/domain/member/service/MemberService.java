@@ -1,6 +1,8 @@
 package com.letsgo.devcommunity.domain.member.service;
 
+import com.letsgo.devcommunity.domain.member.dto.LoginRequest;
 import com.letsgo.devcommunity.domain.member.dto.SignUpRequest;
+import com.letsgo.devcommunity.domain.member.email.EmailVerificationStore;
 import com.letsgo.devcommunity.domain.member.entity.Member;
 import com.letsgo.devcommunity.domain.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
@@ -15,8 +17,12 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationStore emailVerificationStore;
 
     public void signUp(SignUpRequest request) {
+        if(!emailVerificationStore.isVerified(request.email())) {
+            throw new IllegalArgumentException("이메일 인증이 완료되지 않았습니다.");
+        }
         validateDuplicateLoginId(request.loginId());
         validateDuplicateEmail(request.email());
 
@@ -30,6 +36,17 @@ public class MemberService {
         );
 
         Member savedMember = memberRepository.save(member);
+    }
+
+    public Member login(LoginRequest request) {
+        Member member = memberRepository.findByLoginId(request.loginId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        if (!passwordEncoder.matches(request.password(), member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        return member;
     }
 
     private void validateDuplicateLoginId(String loginId) {

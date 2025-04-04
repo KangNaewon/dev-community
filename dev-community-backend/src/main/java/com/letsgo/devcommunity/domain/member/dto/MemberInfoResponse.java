@@ -1,2 +1,14 @@
-package com.letsgo.devcommunity.domain.member.dto;public class MemberInfoResponse {
+package com.letsgo.devcommunity.domain.member.dto;
+
+import com.letsgo.devcommunity.domain.member.entity.Member;
+
+public record MemberInfoResponse(
+        Long id,
+        String loginId,
+        String nickname
+) {
+    public MemberInfoResponse(Member member) {
+        this(member.getId(), member.getLoginId(), member.getNickname());
+    }
 }
+
