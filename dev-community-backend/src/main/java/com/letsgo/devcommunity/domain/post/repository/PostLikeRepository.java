@@ -1,6 +1,6 @@
 package com.letsgo.devcommunity.domain.post.repository;
 
-import com.letsgo.devcommunity.domain.post.entity.PostStar;
+import com.letsgo.devcommunity.domain.post.entity.PostLike;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-public interface StarRepository extends JpaRepository<PostStar, Long> {
-    Optional<PostStar> findByPostIdAndUserId(Long postId, Long userId);
+public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
+    Optional<PostLike> findByPostIdAndUserId(Long postId, Long userId);
     void deleteByPostIdAndUserId(Long postId, Long userId);
 }

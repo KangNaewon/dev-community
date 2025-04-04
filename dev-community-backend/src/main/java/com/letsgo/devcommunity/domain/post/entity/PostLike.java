@@ -10,7 +10,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class PostStar {
+public class PostLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,9 +18,9 @@ public class PostStar {
     private Long userId;
     private Long postId;
 
-    public PostStar(){}
+    public PostLike(){}
 
-    public PostStar(Long userId, Long postId){
+    public PostLike(Long userId, Long postId){
         this.userId = userId;
         this.postId = postId;
     }

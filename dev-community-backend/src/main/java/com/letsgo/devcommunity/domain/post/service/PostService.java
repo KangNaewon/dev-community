@@ -2,12 +2,12 @@ package com.letsgo.devcommunity.domain.post.service;
 
 import com.letsgo.devcommunity.domain.post.entity.Comment;
 import com.letsgo.devcommunity.domain.post.entity.Post;
-import com.letsgo.devcommunity.domain.post.entity.PostStar;
+import com.letsgo.devcommunity.domain.post.entity.PostLike;
 import com.letsgo.devcommunity.domain.post.repository.PostRepository;
-import com.letsgo.devcommunity.domain.post.repository.StarRepository;
+import com.letsgo.devcommunity.domain.post.repository.PostLikeRepository;
+import com.letsgo.devcommunity.domain.post.repository.CommentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.letsgo.devcommunity.domain.post.repository.CommentRepository;
 
 import java.util.List;
 
@@ -15,11 +15,11 @@ import java.util.List;
 public class PostService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final StarRepository starRepository;
+    private final PostLikeRepository postLikeRepository;
 
     @Autowired
-    public PostService(PostRepository postRepository, CommentRepository commentRepository, StarRepository starRepository) {
-        this.starRepository = starRepository;
+    public PostService(PostRepository postRepository, CommentRepository commentRepository, PostLikeRepository postLikeRepository) {
+        this.postLikeRepository = postLikeRepository;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
     }
@@ -57,14 +57,14 @@ public class PostService {
     }
 
     public void createStar(Long postId, Long userId) {
-        final var star = starRepository.findByPostIdAndUserId(postId, userId);
+        final var star = postLikeRepository.findByPostIdAndUserId(postId, userId);
         if(star.isEmpty()){
-            starRepository.save(new PostStar(userId, postId));
+            postLikeRepository.save(new PostLike(userId, postId));
         }
     }
 
     public void deleteStar(Long postId, Long userId) {
-        starRepository.deleteByPostIdAndUserId(postId, userId);
+        postLikeRepository.deleteByPostIdAndUserId(postId, userId);
     }
 
 }
