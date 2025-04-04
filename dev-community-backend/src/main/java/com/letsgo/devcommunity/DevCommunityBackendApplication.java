@@ -10,5 +10,4 @@ public class DevCommunityBackendApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DevCommunityBackendApplication.class, args);
 	}
-
 }
