@@ -157,6 +157,8 @@ paths:
             schema:
               type: object
               properties:
+                id: 
+                  type: string
                 email:
                   type: string
                 password:
@@ -191,13 +193,13 @@ paths:
             schema:
               type: object
               required:
-                - email
+                - id
                 - password
               properties:
-                email:
+                id:
                   type: string
-                  format: email
-                  example: student@univ.edu
+                  format: id
+                  example: dev123
                 password:
                   type: string
                   format: password
@@ -217,6 +219,8 @@ paths:
                 properties:
                   userId:
                     type: integer
+                  loginId:
+                    type: string
                   nickname:
                     type: string
         '401':
