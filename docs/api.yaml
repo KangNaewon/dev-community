@@ -219,6 +219,8 @@ paths:
                 properties:
                   userId:
                     type: integer
+                  loginId:
+                    type: string
                   nickname:
                     type: string
         '401':
