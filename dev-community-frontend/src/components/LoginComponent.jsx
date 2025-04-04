@@ -11,7 +11,7 @@ const LoginComponent = () => {
   const [showLogin, setShowLogin] = useState(true);
   
   // States for login
-  const [loginEmail, setLoginEmail] = useState('');
+  const [loginId, setLoginId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   
@@ -20,6 +20,7 @@ const LoginComponent = () => {
   const [nickname, setNickname] = useState('');
   const [signupError, setSignupError] = useState('');
   const [email, setEmail] = useState('');
+  const [id, setSignupId] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
@@ -42,21 +43,24 @@ const LoginComponent = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Test mode for specific email
-      if (loginEmail === 'test@sogang.ac.kr' && loginPassword === '1234') {
+      // Test mode for specific ID
+      // In the handleLogin function, make sure all navigate('/temp') are changed to navigate('/main')
+      // For example:
+      // In the handleLogin function, update the navigation path
+      if (loginId === 'test' && loginPassword === '1234') {
         setLoginError('');
         setAlert('로그인 성공!');
         // 테스트 사용자 정보 저장
         localStorage.setItem('user', JSON.stringify({
-          email: loginEmail,
+          id: loginId,
           nickname: '테스트 사용자'
         }));
-        navigate('/temp');
+        navigate('/main');
         return;
       }
 
       const response = await axios.post('/auth/login', {
-        email: loginEmail,
+        id: loginId,
         password: loginPassword
       });
 
@@ -67,16 +71,17 @@ const LoginComponent = () => {
         // 실제 사용자 정보 저장
         localStorage.setItem('user', JSON.stringify({
           userId,
-          email: loginEmail,
+          id: loginId,
           nickname
         }));
-        navigate('/temp');
+        // Find where it navigates to '/temp' and update it:
+        navigate('/main');
       }
     } catch (error) {
       if (error.response?.status === 401) {
-        setLoginError('이메일 또는 비밀번호를 확인하세요.');
+        setLoginError('아이디 또는 비밀번호를 확인하세요.');
       } else {
-        setLoginError('이메일 또는 비밀번호를 확인하세요.');
+        setLoginError('아이디 또는 비밀번호를 확인하세요.');
       }
     }
   };
@@ -98,6 +103,7 @@ const LoginComponent = () => {
 
     try {
       const response = await axios.post('/auth/signup', {
+        id: id,
         email: email,
         password: signupPassword,
         nickname: nickname
@@ -128,6 +134,7 @@ const LoginComponent = () => {
     setShowLogin(!showLogin);
     // Reset states when switching forms
     setEmail('');
+    setSignupId('');
     setIsEmailValid(false);
     setVerificationSent(false);
     setVerificationCode('');
@@ -214,13 +221,13 @@ const LoginComponent = () => {
           <form onSubmit={handleLogin} className={`login__register ${showLogin ? 'block' : 'none'}`} id="login-in">
             <h1 className="login__title">Sign In</h1>
             <div className="login__box">
-              <i className='bx bx-at login__icon'></i>
+              <i className='bx bx-user login__icon'></i>
               <input 
-                type="email" 
-                placeholder="Email@sogang.ac.kr" 
+                type="text" 
+                placeholder="ID" 
                 className="login__input" 
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
+                value={loginId}
+                onChange={(e) => setLoginId(e.target.value)}
                 required 
               />
             </div>
@@ -255,6 +262,18 @@ const LoginComponent = () => {
           <form onSubmit={handleSignup} className={`login__create ${showLogin ? 'none' : 'block'}`} id="login-up">
             <h1 className="login__title">Create Account</h1>
             
+            <div className="login__box">
+              <i className='bx bx-user login__icon'></i>
+              <input 
+                type="text" 
+                placeholder="ID" 
+                className="login__input" 
+                value={id}
+                onChange={(e) => setSignupId(e.target.value)}
+                required 
+              />
+            </div>
+            
             <div className="login__box email-box">
               <i className='bx bx-at login__icon'></i>
               <input 
@@ -274,6 +293,7 @@ const LoginComponent = () => {
               </button>
             </div>
             
+            {/* Verification code section remains the same */}
             {verificationSent && (
               <div className="login__box verification-box">
                 <i className='bx bx-check-circle login__icon'></i>
@@ -309,6 +329,7 @@ const LoginComponent = () => {
               />
             </div>
             
+            {/* Password field and remaining form elements */}
             <div className="login__box">
               <i className='bx bx-lock login__icon'></i>
               <input 
