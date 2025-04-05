@@ -1,5 +1,5 @@
 #React 앱 빌드
-FROM node:18 as builder
+FROM node:20 as builder
 WORKDIR /app
 COPY . .
 RUN npm install && npm run build
