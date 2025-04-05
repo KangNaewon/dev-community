@@ -1,6 +1,7 @@
 package com.letsgo.devcommunity.domain.post.controller;
 
-import com.letsgo.devcommunity.domain.post.entity.Comment;
+import com.letsgo.devcommunity.domain.post.dto.PostDto;
+import  com.letsgo.devcommunity.domain.post.entity.Comment;
 import com.letsgo.devcommunity.domain.post.entity.Post;
 import com.letsgo.devcommunity.domain.post.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +25,12 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public Post getOne(@PathVariable("postId") Long id) {
-        return postService.findById(id);
+    public PostDto getOnePost(@PathVariable("postId") Long id) {
+        return postService.getOnePost(id);
     }
 
     @GetMapping
-    public List<Post> getAll() {
+    public List<Post> getAllPosts() {
         return postService.findAll();
     }
 
@@ -53,14 +54,23 @@ public class PostController {
         postService.deleteComment(id);
     }
 
-    @PostMapping("/{postId}/star")
-    public void createStar(@PathVariable("postId") Long id) {
-        postService.createStar(id, 1L);
+    @PostMapping("/{postId}/postLike")
+    public void createPostLike(@PathVariable("postId") Long id) {
+        postService.createPostLike(id, 1L);
     }
 
-    @DeleteMapping("/{postId}/star")
-    public void deleteStar(@PathVariable("postId") Long id){
-        postService.deleteStar(id, 1L);
+    @DeleteMapping("/{postId}/postLike")
+    public void deletePostLike(@PathVariable("postId") Long id){
+        postService.deletePostLike(id, 1L);
+    }
+
+    @GetMapping("/my/{userId}")
+    public List<Post> getUserPosts(@PathVariable("userId") Long userId) {
+        return postService.getUserPosts(userId);
+    }
+    @GetMapping("/like/{userId}")
+    public List<Post> getUserPostLike(@PathVariable("userId") Long userId) {
+        return postService.getUserPostLike(userId);
     }
 
 }
