@@ -179,3 +179,76 @@
     gap: 3px;
   }
 }
+
+
+/* 기존 스타일에 추가 */
+.stat.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.stat.clickable:hover {
+  transform: scale(1.05);
+}
+
+.stat.clickable::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: #3498db;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.stat.clickable:hover::after {
+  width: 70%;
+}
+
+.stat.clickable .stat-count {
+  position: relative;
+  display: inline-block;
+}
+
+.stat.clickable:hover .stat-count {
+  animation: pulse 1s infinite;
+  color: #3498db;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.stat.clickable .stat-label {
+  transition: color 0.3s ease;
+}
+
+.stat.clickable:hover .stat-label {
+  color: #3498db;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #000;  /* 검은색으로 변경 */
+  font-size: 24px;
+  cursor: pointer;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.back-btn:hover {
+  opacity: 0.8;
+}

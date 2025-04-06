@@ -3,6 +3,35 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './MainPageStyles.css';
 
+// 더미 데이터 정의
+const dummyPosts = [
+  {
+    id: 1,
+    title: "React 상태관리의 모든 것",
+    content: "React에서 상태관리를 효율적으로 하는 방법을 알아봅시다...",
+    author: {
+      id: "user1",
+      nickname: "개발왕"
+    },
+    recommendCount: 100,
+    createdAt: "2024-01-15T09:00:00",
+    comments: []
+  },
+  {
+    id: 2,
+    title: "Spring Boot 시작하기",
+    content: "Spring Boot로 백엔드 개발을 시작해봅시다...",
+    author: {
+      id: "user2",
+      nickname: "백엔드개발자"
+    },
+    recommendCount: 120,
+    createdAt: "2024-01-14T15:30:00",
+    comments: []
+  },
+  // ... 더 많은 더미 게시글 추가 가능
+];
+
 const MainPage = () => {
   const navigate = useNavigate();
   const [logoutError, setLogoutError] = useState('');
@@ -17,25 +46,35 @@ const MainPage = () => {
       try {
         setLoading(true);
         
-        // 인기 게시글 가져오기 (추천수 기준 정렬)
-        const popularResponse = await axios.get('/post', {
-          params: {
-            page: 0,
-            size: 8,
-            sort: 'recommendCount,desc'
-          }
-        });
-        setPopularPosts(popularResponse.data.content);
-        
-        // 전체 게시글 가져오기 (최신순 정렬)
-        const allPostsResponse = await axios.get('/post', {
-          params: {
-            page: 0,
-            size: 8,
-            sort: 'createdAt,desc'
-          }
-        });
-        setAllPosts(allPostsResponse.data.content);
+        // 서버 요청 시도
+        try {
+          // 인기 게시글 가져오기
+          const popularResponse = await axios.get('/post', {
+            params: {
+              page: 0,
+              size: 8,
+              sort: 'recommendCount,desc'
+            }
+          });
+          setPopularPosts(popularResponse.data.content);
+          
+          // 전체 게시글 가져오기
+          const allPostsResponse = await axios.get('/post', {
+            params: {
+              page: 0,
+              size: 8,
+              sort: 'createdAt,desc'
+            }
+          });
+          setAllPosts(allPostsResponse.data.content);
+        } catch (error) {
+          console.error('서버 연결 실패, 더미 데이터 사용:', error);
+          // 서버 연결 실패 시 더미 데이터 사용
+          setPopularPosts(dummyPosts.sort((a, b) => b.recommendCount - a.recommendCount));
+          setAllPosts(dummyPosts.sort((a, b) => 
+            new Date(b.createdAt) - new Date(a.createdAt)
+          ));
+        }
         
         setLoading(false);
       } catch (error) {
@@ -67,7 +106,7 @@ const MainPage = () => {
   };
 
   const handlePostClick = (id) => {
-    navigate(`/post/${id}`); // 게시글 ID를 기반으로 상세 페이지로 이동
+    navigate(`/post/${id}`);  // 이 부분이 제대로 동작하는지 확인
   };
 
   return (

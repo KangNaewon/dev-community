@@ -5,20 +5,24 @@ import MainPage from './components/MainPage';
 import PopularPosts from './components/PopularPosts';
 import AllPosts from './components/AllPosts';
 import PostDetail from './components/PostDetail';
-import EditPost from './components/EditPost'; // 게시글 수정 페이지 컴포넌트 추가
+import EditPost from './components/EditPost';
 import MyPage from './components/MyPage';
+import EditProfile from './components/EditProfile';
+import ChangePassword from './components/ChangePassword';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LoginComponent />} />
-        <Route path="/main" element={<MainPage />} />
+        <Route path="/login" element={<LoginComponent />} />
+        <Route path="/" element={<MainPage />} />
         <Route path="/popular-posts" element={<PopularPosts />} />
         <Route path="/all-posts" element={<AllPosts />} />
         <Route path="/post/:id" element={<PostDetail />} />
-        <Route path="/edit-post/:id" element={<EditPost />} /> {/* 게시글 수정 페이지 Route 추가 */}
+        <Route path="/edit-post/:id" element={<EditPost />} />
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/change-password" element={<ChangePassword />} />
       </Routes>
     </Router>
   );
