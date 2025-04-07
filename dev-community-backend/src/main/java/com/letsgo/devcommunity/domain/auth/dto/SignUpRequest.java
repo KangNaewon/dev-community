@@ -7,4 +7,4 @@ public record SignUpRequest(
         @JsonProperty("email") String email,
         @JsonProperty("password") String password,
         @JsonProperty("nickname") String nickname
-) {}
+) { }
