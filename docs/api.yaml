@@ -47,9 +47,9 @@ components:
         createdAt:
           type: string
           format: date-time
-        recommendCount:
+        likeCount:
           type: integer
-        isRecommended:
+        isLiked:
           type: boolean
         comments:
           type: array
@@ -122,7 +122,7 @@ components:
           type: string
         author:
           $ref: '#/components/schemas/UserSimple'
-        recommendCount:
+        likeCount:
           type: integer
         commentCount:
           type: integer
@@ -299,34 +299,134 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
 
-  /user/me:
+  /member/{loginId}:
     get:
-      summary: 내 정보 조회
-      description: 현재 로그인한 사용자의 정보를 조회합니다.
+      summary: 사용자 정보 조회
+      description: loginId에 해당하는 프로필 정보를 조회한다.
+      parameters:
+        - name: loginId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 사용자 로그인 ID
       responses:
         '200':
-          description: 사용자 정보 반환
+          description: 회원 정보 조회 성공
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  id:
-                    type: integer
-                  email:
-                    type: string
                   nickname:
                     type: string
                   profileImageUrl:
                     type: string
-        '401':
-          description: 인증되지 않은 사용자
+                    format: uri
+                  followerCount:
+                    type: integer
+                  followingCount:
+                    type: integer
+                  receivedLikeCount:
+                    type: integer
+                    
+  /member/{loginId}/followers:
+    get:
+      summary: 팔로워 목록 조회
+      description: loginId를 기준으로 해당 사용자의 팔로워 목록을 조회합니다.
+      parameters:
+        - name: loginId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 팔로워 목록 조회 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    loginId:
+                      type: string
+                    nickname:
+                      type: string
+                    profileImageUrl:
+                      type: string
+                      format: uri
+
+  /member/{loginId}/followings:
+    get:
+      summary: 팔로잉 목록 조회
+      description: loginId를 기준으로 해당 사용자가 팔로우한 사용자 목록을 조회합니다.
+      parameters:
+        - name: loginId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 팔로잉 목록 조회 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    loginId:
+                      type: string
+                    nickname:
+                      type: string
+                    profileImageUrl:
+                      type: string
+                      format: uri
+                      
+  /member/{loginId}/follow:
+    post:
+      summary: 팔로우 추가
+      description: 로그인한 사용자가 loginId에 해당하는 사용자를 팔로우합니다.
+      parameters:
+        - name: loginId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 팔로우 대상 유저의 로그인 ID
+      responses:
+        '200':
+          description: 팔로우 성공
+        '400':
+          description: 이미 팔로우 중인 경우 등 오류
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-                
+    delete:
+      summary: 팔로우 취소
+      description: 로그인한 사용자가 loginId에 해당하는 사용자에 대한 팔로우를 취소합니다.
+      parameters:
+        - name: loginId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 언팔로우 대상 유저의 로그인 ID
+      responses:
+        '200':
+          description: 언팔로우 성공
+        '404':
+          description: 팔로우 관계가 존재하지 않을 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
   /post/{postId}:
     get:
       summary: 게시글 상세 조회
@@ -374,6 +474,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+                
+    
                 
     put:
       summary: 게시글 수정
@@ -444,7 +546,7 @@ paths:
         - name: sort
           in: query
           required: false
-          description: 정렬 기준 (`createdAt,desc` 또는 `recommendCount,desc` 등)
+          description: 정렬 기준 (`createdAt,desc` 또는 `likeCount,desc` 등)
           schema:
             type: string
             example: "createdAt,desc"
@@ -576,7 +678,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /post/{postId}/star:
+  /post/{postId}/like:
     post:
       summary: 게시글 추천
       description: 사용자가 게시글을 추천합니다.
