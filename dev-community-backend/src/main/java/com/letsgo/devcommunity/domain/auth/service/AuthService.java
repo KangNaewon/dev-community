@@ -30,7 +30,8 @@ public class AuthService {
                 request.loginId(),
                 request.email(),
                 encodedPassword,
-                request.nickname()
+                request.nickname(),
+                null
         );
 
         Member savedMember = authRepository.save(member);
