@@ -1,4 +1,4 @@
-package com.letsgo.devcommunity.domain.member.dto;
+package com.letsgo.devcommunity.domain.auth.dto;
 
 import com.letsgo.devcommunity.domain.member.entity.Member;
 

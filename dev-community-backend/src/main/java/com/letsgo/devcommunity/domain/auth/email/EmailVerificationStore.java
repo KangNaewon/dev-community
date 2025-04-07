@@ -1,4 +1,4 @@
-package com.letsgo.devcommunity.domain.member.email;
+package com.letsgo.devcommunity.domain.auth.email;
 
 import java.time.Duration;
 

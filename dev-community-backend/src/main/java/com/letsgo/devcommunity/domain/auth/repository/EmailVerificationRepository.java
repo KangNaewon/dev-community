@@ -1,6 +1,6 @@
-package com.letsgo.devcommunity.domain.member.repository;
+package com.letsgo.devcommunity.domain.auth.repository;
 
-import com.letsgo.devcommunity.domain.member.entity.EmailVerification;
+import com.letsgo.devcommunity.domain.auth.entity.EmailVerification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

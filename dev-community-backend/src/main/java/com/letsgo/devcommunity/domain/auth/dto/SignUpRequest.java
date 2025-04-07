@@ -1,7 +1,6 @@
-package com.letsgo.devcommunity.domain.member.dto;
+package com.letsgo.devcommunity.domain.auth.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
 
 public record SignUpRequest(
         @JsonProperty("id") String loginId,

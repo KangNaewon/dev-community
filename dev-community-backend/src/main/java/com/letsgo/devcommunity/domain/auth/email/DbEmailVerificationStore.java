@@ -1,7 +1,7 @@
-package com.letsgo.devcommunity.domain.member.email;
+package com.letsgo.devcommunity.domain.auth.email;
 
-import com.letsgo.devcommunity.domain.member.entity.EmailVerification;
-import com.letsgo.devcommunity.domain.member.repository.EmailVerificationRepository;
+import com.letsgo.devcommunity.domain.auth.entity.EmailVerification;
+import com.letsgo.devcommunity.domain.auth.repository.EmailVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

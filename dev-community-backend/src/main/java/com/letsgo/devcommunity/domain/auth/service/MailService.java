@@ -1,4 +1,4 @@
-package com.letsgo.devcommunity.domain.member.service;
+package com.letsgo.devcommunity.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;

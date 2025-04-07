@@ -1,4 +1,4 @@
-package com.letsgo.devcommunity.domain.member.entity;
+package com.letsgo.devcommunity.domain.auth.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

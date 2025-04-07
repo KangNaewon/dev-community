@@ -1,8 +1,8 @@
-package com.letsgo.devcommunity.domain.member.controller;
+package com.letsgo.devcommunity.domain.auth.controller;
 
-import com.letsgo.devcommunity.domain.member.dto.SendVerificationRequest;
-import com.letsgo.devcommunity.domain.member.dto.VerifyCodeRequest;
-import com.letsgo.devcommunity.domain.member.service.EmailVerificationService;
+import com.letsgo.devcommunity.domain.auth.dto.SendVerificationRequest;
+import com.letsgo.devcommunity.domain.auth.dto.VerifyCodeRequest;
+import com.letsgo.devcommunity.domain.auth.service.EmailVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

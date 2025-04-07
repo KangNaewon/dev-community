@@ -1,6 +1,6 @@
-package com.letsgo.devcommunity.domain.member.service;
+package com.letsgo.devcommunity.domain.auth.service;
 
-import com.letsgo.devcommunity.domain.member.email.EmailVerificationStore;
+import com.letsgo.devcommunity.domain.auth.email.EmailVerificationStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
