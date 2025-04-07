@@ -1,0 +1,64 @@
+pipeline {
+    agent none
+    
+    environment {
+        FRONTEND_IMAGE = 'knw125/dev-community-frontend'
+        FRONTEND_SERVER = 'ubuntu@43.201.113.178'
+    }
+    
+    stages {
+        // Github에서 코드 가져오기
+        stage('Checkout') {
+            agent any
+            steps {
+                git credentialsId: 'github-credentials', url: 'https://github.com/KangNaewon/dev-community.git', branch: 'develop'
+            }
+        }
+        
+        // React 앱 빌드 (정적 파일 생성)
+        stage('Build Frontend') {
+            agent {
+                docker {
+                    image 'node:20'
+                }
+            }
+            steps {
+                dir('dev-community-frontend') {
+                    sh 'ls -al .'
+                    sh 'npm ci --cache .npm-cache'
+                    sh 'CI=false npm run build'
+                }
+            }
+        }
+        
+        // Docker 이미지 빌드, DockerHub에 push
+        stage('Build Docker Image & Push') {
+            agent any
+            steps {
+                dir('dev-community-frontend') {
+                    script {
+                        docker.withRegistry('', 'dockerhub-credentials') {
+                            docker.build("${FRONTEND_IMAGE}:${env.BUILD_NUMBER}").push('latest')
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 프론트엔드 서버에 배포
+        stage('Deploy') {
+            agent any
+            steps {
+                sh """
+                ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} \\
+                'docker pull ${FRONTEND_IMAGE}:latest && \\
+                 docker stop react-app || true && \\
+                 docker rm react-app || true && \\
+                 docker run -d -p 8000:80 --name react-app ${FRONTEND_IMAGE}:latest'
+                """
+            }
+        }
+        
+    }
+    
+}
