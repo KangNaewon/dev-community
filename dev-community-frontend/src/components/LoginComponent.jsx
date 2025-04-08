@@ -11,8 +11,8 @@ const LoginComponent = () => {
   const [showLogin, setShowLogin] = useState(true);
   
   // States for login
-  const [loginId, setLoginId] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [InputId, setLoginId] = useState('');
+  const [InputPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   
   // States for signup
@@ -44,15 +44,13 @@ const LoginComponent = () => {
     e.preventDefault();
     try {
       // Test mode for specific ID
-      // In the handleLogin function, make sure all navigate('/temp') are changed to navigate('/main')
-      // For example:
-      // In the handleLogin function, update the navigation path
-      if (loginId === 'test' && loginPassword === '1234') {
+      if (InputId === 'test' && InputPassword === '1234') {
         setLoginError('');
         setAlert('로그인 성공!');
         // 테스트 사용자 정보 저장
         localStorage.setItem('user', JSON.stringify({
-          id: loginId,
+          userId: 0,
+          loginId: InputId,
           nickname: '테스트 사용자'
         }));
         navigate('/main');
@@ -60,21 +58,20 @@ const LoginComponent = () => {
       }
 
       const response = await axios.post('/auth/login', {
-        id: loginId,
-        password: loginPassword
+        id: InputId,
+        password: InputPassword
       });
 
       if (response.status === 200) {
         setLoginError('');
         setAlert('로그인 성공!');
-        const { userId, nickname } = response.data;
+        const { userId, loginId, nickname } = response.data;
         // 실제 사용자 정보 저장
         localStorage.setItem('user', JSON.stringify({
           userId,
-          id: loginId,
+          loginId,
           nickname
         }));
-        // Find where it navigates to '/temp' and update it:
         navigate('/main');
       }
     } catch (error) {
@@ -226,7 +223,7 @@ const LoginComponent = () => {
                 type="text" 
                 placeholder="ID" 
                 className="login__input" 
-                value={loginId}
+                value={InputId}
                 onChange={(e) => setLoginId(e.target.value)}
                 required 
               />
@@ -237,7 +234,7 @@ const LoginComponent = () => {
                 type="password" 
                 placeholder="Password" 
                 className="login__input" 
-                value={loginPassword}
+                value={InputPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 required 
               />

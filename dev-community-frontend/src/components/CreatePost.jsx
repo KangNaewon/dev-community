@@ -1,32 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './EditPostStyles.css';
+import './CreatePostStyles.css';
 
-const EditPost = () => {
-  const { id: postId } = useParams();
+const CreatePost = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const response = await axios.get(`/post/${postId}`);
-        setTitle(response.data.title);
-        setContent(response.data.content);
-        setLoading(false);
-      } catch (error) {
-        console.error('게시글 정보 로딩 실패:', error);
-        setError('게시글을 불러오는데 실패했습니다.');
-        setLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, [postId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,45 +19,40 @@ const EditPost = () => {
     }
 
     try {
-      // PUT 요청으로 게시글 수정
-      const response = await axios.put(`/post/${postId}`, {
+      setLoading(true);
+      setError(null);
+      
+      // 게시글 작성 API 호출
+      const response = await axios.post('/post', {
         title,
         content
       });
       
-      // 수정 성공 시 상세 페이지로 이동
-      navigate(`/post/${postId}`);
+      // 작성 성공 시 해당 게시글 상세 페이지로 이동
+      navigate(`/post/${response.data.id}`);
     } catch (error) {
-      console.error('게시글 수정 실패:', error);
+      console.error('게시글 작성 실패:', error);
       
-      // 에러 응답에 따른 처리
       if (error.response) {
         const { status } = error.response;
         if (status === 400) {
-          alert('제목과 내용을 올바르게 입력해주세요.');
+          setError('제목과 내용을 올바르게 입력해주세요.');
         } else if (status === 401) {
           alert('로그인이 필요합니다.');
           navigate('/login');
-        } else if (status === 403) {
-          alert('본인이 작성한 게시글만 수정할 수 있습니다.');
-          navigate(`/post/${postId}`);
-        } else if (status === 404) {
-          alert('게시글을 찾을 수 없습니다.');
-          navigate('/main');
         } else {
-          alert('게시글 수정에 실패했습니다.');
+          setError('게시글 작성에 실패했습니다.');
         }
       } else {
-        alert('게시글 수정에 실패했습니다.');
+        setError('서버 연결에 실패했습니다.');
       }
+      
+      setLoading(false);
     }
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
-
   return (
-    <div className="edit-post">
+    <div className="create-post">
       <header className="community-header">
         <button className="back-btn" onClick={() => navigate(-1)}>
           <i className="bx bx-arrow-back"></i>
@@ -86,8 +63,11 @@ const EditPost = () => {
         </div>
       </header>
 
-      <div className="edit-post-container">
-        <h1>게시글 수정</h1>
+      <div className="create-post-container">
+        <h1>새 게시글 작성</h1>
+        
+        {error && <div className="error-message">{error}</div>}
+        
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="title">제목</label>
@@ -100,6 +80,7 @@ const EditPost = () => {
               required
             />
           </div>
+          
           <div className="form-group">
             <label htmlFor="content">내용</label>
             <textarea
@@ -111,9 +92,22 @@ const EditPost = () => {
               required
             />
           </div>
+          
           <div className="form-actions">
-            <button type="button" onClick={() => navigate(-1)}>취소</button>
-            <button type="submit">수정 완료</button>
+            <button 
+              type="button" 
+              className="cancel-btn"
+              onClick={() => navigate(-1)}
+            >
+              취소
+            </button>
+            <button 
+              type="submit" 
+              className="submit-btn"
+              disabled={loading}
+            >
+              {loading ? '작성 중...' : '작성 완료'}
+            </button>
           </div>
         </form>
       </div>
@@ -121,4 +115,4 @@ const EditPost = () => {
   );
 };
 
-export default EditPost;
+export default CreatePost;

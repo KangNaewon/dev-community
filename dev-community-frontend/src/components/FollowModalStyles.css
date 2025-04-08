@@ -38,7 +38,17 @@
   text-align: center;
   flex: 1;
 }
+.user-nickname {
+  font-weight: bold;
+  font-size: 16px;
+  display: block;
+}
 
+.user-id {
+  color: #666;
+  font-size: 14px;
+  display: block;
+}
 .close-button {
   background: none;
   border: none;
