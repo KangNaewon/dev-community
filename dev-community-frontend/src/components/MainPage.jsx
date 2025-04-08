@@ -4,7 +4,7 @@ import axios from 'axios';
 import './MainPageStyles.css';
 
 // 더미 데이터 정의
-const dummyPosts = [
+/*const dummyPosts = [
   {
     id: 1,
     title: "React 상태관리의 모든 것",
@@ -30,7 +30,7 @@ const dummyPosts = [
     comments: []
   },
   // ... 더 많은 더미 게시글 추가 가능
-];
+];*/
 
 const MainPage = () => {
   const navigate = useNavigate();
@@ -70,10 +70,10 @@ const MainPage = () => {
         } catch (error) {
           console.error('서버 연결 실패, 더미 데이터 사용:', error);
           // 서버 연결 실패 시 더미 데이터 사용
-          setPopularPosts(dummyPosts.sort((a, b) => b.recommendCount - a.recommendCount));
+          /* setPopularPosts(dummyPosts.sort((a, b) => b.recommendCount - a.recommendCount));
           setAllPosts(dummyPosts.sort((a, b) => 
             new Date(b.createdAt) - new Date(a.createdAt)
-          ));
+          ));*/
         }
         
         setLoading(false);

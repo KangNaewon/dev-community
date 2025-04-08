@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import './EditProfileStyles.css';
 
 // 더미 데이터 정의
-const dummyUserInfo = {
+/*const dummyUserInfo = {
   id: 'user123',
   nickname: 'DevUser',
   email: 'user@example.com',
   profileImageUrl: null
-};
+};*/
 
 const EditProfile = () => {
   const [userInfo, setUserInfo] = useState(null);
@@ -30,11 +30,12 @@ const EditProfile = () => {
         console.error('Error fetching user info:', error);
         if (error.response?.status === 401) {
           navigate('/login');
-        } else {
+        } 
+        /*else {
           // 서버 연결 실패 시 더미 데이터 사용
           setUserInfo(dummyUserInfo);
           setLoading(false);
-        }
+        }*/
       }
     };
 
