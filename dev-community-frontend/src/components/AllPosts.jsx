@@ -1,28 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dummyPosts } from '../data/dummyData';
+import axios from 'axios';
 import './PostsPage.css';
 
 const AllPosts = () => {
   const navigate = useNavigate();
+  const [posts, setPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const postsPerPage = 10;
 
-  // 날짜순으로 정렬된 게시글
-  const sortedPosts = [...dummyPosts].sort((a, b) => 
-    new Date(b.date) - new Date(a.date)
-  );
-  
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = sortedPosts.slice(indexOfFirstPost, indexOfLastPost);
-  
-  const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const fetchPosts = async (page) => {
+    try {
+      const response = await axios.get('/post', {
+        params: {
+          page: page - 1, // API는 0부터 시작
+          size: postsPerPage,
+          sort: 'createdAt,desc',
+        },
+      });
+
+      const { content, totalPages } = response.data;
+      setPosts(content);
+      setTotalPages(totalPages);
+    } catch (error) {
+      console.error('게시글 불러오기 실패:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts(currentPage);
+  }, [currentPage]);
 
   const handlePostClick = (id) => {
-    navigate(`/post/${id}`); // 게시글 ID를 기반으로 상세 페이지로 이동
+    navigate(`/post/${id}`);
   };
+
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
     <div className="posts-page">
@@ -32,29 +46,31 @@ const AllPosts = () => {
         </button>
         <h1>전체 게시글</h1>
       </header>
-      
+
       <main className="posts-main">
-        {currentPosts.map(post => (
-          <div 
-            key={post.id} 
-            className="post-item" 
-            onClick={() => handlePostClick(post.id)} // 클릭 이벤트 추가
-            style={{ cursor: 'pointer' }} // 클릭 가능하도록 스타일 추가
+        {posts.map(post => (
+          <div
+            key={post.id}
+            className="post-item"
+            onClick={() => handlePostClick(post.id)}
+            style={{ cursor: 'pointer' }}
           >
             <div className="post-content">
               <h3 className="post-title">{post.title}</h3>
               <div className="post-meta">
                 <span className="post-author">{post.author}</span>
-                <span className="post-date">{post.date}</span>
+                <span className="post-date">
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </span>
               </div>
             </div>
             <div className="post-likes">
               <i className="bx bx-like"></i>
-              <span>{post.likes}</span>
+              <span>{post.likeCount}</span>
             </div>
           </div>
         ))}
-        
+
         <div className="pagination">
           {pageNumbers.map(number => (
             <button

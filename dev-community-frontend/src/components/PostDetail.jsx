@@ -35,7 +35,7 @@ const PostDetail = () => {
       } catch (error) {
         console.error('게시글 상세 정보 로딩 실패:', error);
         // 더미 데이터 사용
-        setPost({
+        /*setPost({
           id: parseInt(postId),
           title: "React 상태관리의 모든 것",
           content: "React에서 상태관리를 효율적으로 하는 방법을 알아봅시다...",
@@ -55,7 +55,7 @@ const PostDetail = () => {
               createdAt: "2024-01-15T10:00:00"
             }
           ]
-        });
+        });*/
         setLoading(false);
       }
     };
@@ -258,19 +258,19 @@ const PostDetail = () => {
       setReplyingTo(null);
     } catch (error) {
       console.error('답글 작성 실패:', error);
-      const dummyReply = {
+      /*const dummyReply = {
         id: Date.now(),
         content: newReply,
         author: '현재 사용자',
         createdAt: new Date().toISOString()
-      };
+      };*/
       setPost(prev => ({
         ...prev,
         comments: prev.comments.map(comment =>
           comment.id === commentId
             ? {
                 ...comment,
-                replies: [...(comment.replies || []), dummyReply]
+                replies: [...(comment.replies || [])/*, dummyReply*/]
               }
             : comment
         )

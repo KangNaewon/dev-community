@@ -5,15 +5,15 @@ import './MyPageStyles.css';
 import FollowModal from './FollowModal';
 
 // 더미 데이터 정의
-const dummyUserInfo = {
+/*const dummyUserInfo = {
   nickname: 'DevUser',
   profileImageUrl: null,
   followerCount: 3,
   followingCount: 2,
   receivedLikeCount: 15
-};
+};*/
 
-const dummyFollowers = [
+/*const dummyFollowers = [
   { id: 'follower1', nickname: 'Follower One', profileImageUrl: null, isFollowing: false },
   { id: 'follower2', nickname: 'Follower Two', profileImageUrl: null, isFollowing: true },
   { id: 'follower3', nickname: 'Follower Three', profileImageUrl: null, isFollowing: false }
@@ -22,7 +22,7 @@ const dummyFollowers = [
 const dummyFollowing = [
   { id: 'following1', nickname: 'Following One', profileImageUrl: null, isFollowing: true },
   { id: 'following2', nickname: 'Following Two', profileImageUrl: null, isFollowing: true }
-];
+];*/
 
 const MyPage = () => {
   const [userInfo, setUserInfo] = useState(null);
@@ -61,12 +61,12 @@ const MyPage = () => {
       } catch (error) {
         console.error('Error fetching user info:', error);
         // 서버 연결 실패 시 더미 데이터 사용
-        setUserInfo({
+        /*setUserInfo({
           ...dummyUserInfo,
           id: user.loginId
         });
         setFollowers(dummyFollowers);
-        setFollowing(dummyFollowing);
+        setFollowing(dummyFollowing);*/
         setLoading(false);
       }
     };
@@ -87,7 +87,7 @@ const MyPage = () => {
     } catch (error) {
       console.error('Error fetching followers:', error);
       // 서버 연결 실패 시 더미 데이터 사용
-      setFollowers(dummyFollowers);
+      //setFollowers(dummyFollowers);
     }
   };
 
@@ -104,7 +104,7 @@ const MyPage = () => {
     } catch (error) {
       console.error('Error fetching following:', error);
       // 서버 연결 실패 시 더미 데이터 사용
-      setFollowing(dummyFollowing);
+      //setFollowing(dummyFollowing);
     }
   };
 
