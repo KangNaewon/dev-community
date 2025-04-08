@@ -1,11 +1,11 @@
 pipeline {
     agent none
-    
+
     environment {
         FRONTEND_IMAGE = 'knw125/dev-community-frontend'
-        FRONTEND_SERVER = 'ubuntu@43.201.113.178'
+        FRONTEND_SERVER = 'ubuntu@3.39.193.241'
     }
-    
+
     stages {
         // Github에서 코드 가져오기
         stage('Checkout') {
@@ -14,7 +14,24 @@ pipeline {
                 git credentialsId: 'github-credentials', url: 'https://github.com/KangNaewon/dev-community.git', branch: 'develop'
             }
         }
-        
+
+        // Docker 캐시 및 실행 중인 컨테이너 정리
+        stage('Clean Docker') {
+            agent any
+            steps {
+                sh '''
+                echo "Stopping running containers..."
+                docker ps -q | xargs -r docker stop
+
+                echo "Removing all containers..."
+                docker ps -a -q | xargs -r docker rm
+
+                echo "Pruning system..."
+                docker system prune -af
+                '''
+            }
+        }
+
         // React 앱 빌드 (정적 파일 생성)
         stage('Build Frontend') {
             agent {
@@ -30,7 +47,7 @@ pipeline {
                 }
             }
         }
-        
+
         // Docker 이미지 빌드, DockerHub에 push
         stage('Build Docker Image & Push') {
             agent any
@@ -44,7 +61,7 @@ pipeline {
                 }
             }
         }
-        
+
         // 프론트엔드 서버에 배포
         stage('Deploy') {
             agent any
@@ -58,7 +75,5 @@ pipeline {
                 """
             }
         }
-        
     }
-    
 }
