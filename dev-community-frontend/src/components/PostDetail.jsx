@@ -4,7 +4,7 @@ import axios from 'axios';
 import './PostDetailStyles.css';
 
 const PostDetail = () => {
-  const { id } = useParams();
+  const { id: postId } = useParams(); // Rename to postId for clarity
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,36 +12,47 @@ const PostDetail = () => {
   const [newComment, setNewComment] = useState('');
   const [newReply, setNewReply] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
+  const [userInfo, setUserInfo] = useState(null); // Add userInfo state
+
+  // Add useEffect to load user info from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setUserInfo(JSON.parse(userStr));
+      } catch (error) {
+        console.error('Failed to parse user info:', error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchPostDetail = async () => {
       try {
-        const response = await axios.get(`/post/${id}`);
+        const response = await axios.get(`/post/${postId}`);
         setPost(response.data);
         setLoading(false);
       } catch (error) {
         console.error('게시글 상세 정보 로딩 실패:', error);
         // 더미 데이터 사용
         setPost({
-          id: parseInt(id),
+          id: parseInt(postId),
           title: "React 상태관리의 모든 것",
           content: "React에서 상태관리를 효율적으로 하는 방법을 알아봅시다...",
           author: {
             id: "user1",
-            nickname: "개발왕"
+            nickname: "개발왕",
+            profileImageUrl: null
           },
-          recommendCount: 150,
+          likeCount: 150,
+          isLiked: false,
           createdAt: "2024-01-15T09:00:00",
           comments: [
             {
               id: 1,
               content: "좋은 글이네요!",
-              author: {
-                id: "commenter1",
-                nickname: "리액트러버"
-              },
-              createdAt: "2024-01-15T10:00:00",
-              replies: []
+              author: "리액트러버",
+              createdAt: "2024-01-15T10:00:00"
             }
           ]
         });
@@ -50,33 +61,85 @@ const PostDetail = () => {
     };
 
     fetchPostDetail();
-  }, [id]);
+  }, [postId]);
 
   const handleEdit = () => {
-    navigate(`/edit-post/${id}`);
+    // 수정 페이지로 이동, postId 파라미터 사용
+    navigate(`/edit-post/${postId}`);
   };
 
   const handleDelete = async () => {
     if (window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
       try {
-        await axios.delete(`/post/${id}`);
-        navigate('/');
+        // 수정된 API 엔드포인트 사용
+        await axios.delete(`/post/${postId}`);
+        // 삭제 성공 시 메인 페이지로 이동
+        navigate('/main');
       } catch (error) {
         console.error('게시글 삭제 실패:', error);
-        alert('게시글 삭제에 실패했습니다.');
+        
+        // 에러 응답에 따른 처리
+        if (error.response) {
+          const { status } = error.response;
+          if (status === 401) {
+            alert('로그인이 필요합니다.');
+            navigate('/login');
+          } else if (status === 403) {
+            alert('본인이 작성한 게시글만 삭제할 수 있습니다.');
+          } else if (status === 404) {
+            alert('게시글을 찾을 수 없습니다.');
+            navigate('/main');
+          } else {
+            alert('게시글 삭제에 실패했습니다.');
+          }
+        } else {
+          alert('게시글 삭제에 실패했습니다.');
+        }
       }
     }
   };
 
   const handleLike = async () => {
     try {
-      await axios.post(`/post/${id}/like`);
-      setPost(prev => ({
-        ...prev,
-        recommendCount: prev.recommendCount + 1
-      }));
+      // 이미 좋아요를 눌렀는지 확인
+      if (post.isLiked) {
+        // 좋아요 취소 로직
+        await axios.delete(`/post/${postId}/like`);
+        setPost(prev => ({
+          ...prev,
+          likeCount: prev.likeCount - 1,
+          isLiked: false
+        }));
+      } else {
+        // 좋아요 추가
+        await axios.post(`/post/${postId}/like`);
+        setPost(prev => ({
+          ...prev,
+          likeCount: prev.likeCount + 1,
+          isLiked: true
+        }));
+      }
     } catch (error) {
-      console.error('추천 실패:', error);
+      console.error('좋아요 처리 실패:', error);
+      
+      if (error.response) {
+        const { status } = error.response;
+        if (status === 400) {
+          // 이미 좋아요를 누른 경우 또는 이미 취소한 경우
+          alert(post.isLiked ? '이미 취소된 좋아요입니다.' : '이미 좋아요를 누르셨습니다.');
+          // 서버 상태와 클라이언트 상태 동기화를 위해 게시글 정보 다시 불러오기
+          const response = await axios.get(`/post/${postId}`);
+          setPost(response.data);
+        } else if (status === 401) {
+          alert('로그인이 필요합니다.');
+          navigate('/login');
+        } else if (status === 404) {
+          alert('게시글을 찾을 수 없습니다.');
+          navigate('/main');
+        }
+      } else {
+        alert('서버 연결에 실패했습니다.');
+      }
     }
   };
 
@@ -85,31 +148,89 @@ const PostDetail = () => {
     if (!newComment.trim()) return;
 
     try {
-      const response = await axios.post(`/post/${id}/comment`, {
+      // 댓글 작성 API 호출 - 경로는 동일하지만 응답 처리 방식 업데이트
+      const response = await axios.post(`/post/${postId}/comment`, {
         content: newComment
       });
+      
+      // 새 댓글 객체 생성
+      const newCommentObj = {
+        id: response.data.id,
+        content: newComment,
+        author: userInfo?.nickname || '현재 사용자', // 사용자 정보가 있다면 사용
+        createdAt: response.data.createdAt
+      };
+      
+      // 댓글 목록 업데이트
       setPost(prev => ({
         ...prev,
-        comments: [...prev.comments, response.data]
+        comments: [...prev.comments, newCommentObj]
       }));
+      
+      // 입력 필드 초기화
       setNewComment('');
     } catch (error) {
       console.error('댓글 작성 실패:', error);
-      const dummyComment = {
-        id: Date.now(),
-        content: newComment,
-        author: {
-          id: 'currentUser',
-          nickname: '현재 사용자'
-        },
-        createdAt: new Date().toISOString(),
-        replies: []
-      };
+      
+      if (error.response) {
+        const { status } = error.response;
+        if (status === 400) {
+          alert('댓글 내용을 올바르게 입력해주세요.');
+        } else if (status === 401) {
+          alert('로그인이 필요합니다.');
+          navigate('/login');
+        } else if (status === 404) {
+          alert('게시글을 찾을 수 없습니다.');
+          navigate('/main');
+        } else {
+          alert('댓글 작성에 실패했습니다.');
+        }
+      } else {
+        alert('서버 연결에 실패했습니다.');
+      }
+    }
+  };
+
+  // 댓글 삭제 함수 추가
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+      return;
+    }
+    
+    try {
+      // 댓글 삭제 API 호출 - 새로운 엔드포인트 사용
+      await axios.delete(`/comment/${commentId}`);
+      
+      // 댓글 목록에서 삭제된 댓글 제거
       setPost(prev => ({
         ...prev,
-        comments: [...prev.comments, dummyComment]
+        comments: prev.comments.filter(comment => comment.id !== commentId)
       }));
-      setNewComment('');
+      
+      alert('댓글이 삭제되었습니다.');
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error);
+      
+      if (error.response) {
+        const { status } = error.response;
+        if (status === 401) {
+          alert('로그인이 필요합니다.');
+          navigate('/login');
+        } else if (status === 403) {
+          alert('본인이 작성한 댓글만 삭제할 수 있습니다.');
+        } else if (status === 404) {
+          alert('댓글을 찾을 수 없습니다.');
+          // 이미 삭제된 댓글일 수 있으므로 UI에서도 제거
+          setPost(prev => ({
+            ...prev,
+            comments: prev.comments.filter(comment => comment.id !== commentId)
+          }));
+        } else {
+          alert('댓글 삭제에 실패했습니다.');
+        }
+      } else {
+        alert('서버 연결에 실패했습니다.');
+      }
     }
   };
 
@@ -120,6 +241,8 @@ const PostDetail = () => {
       const response = await axios.post(`/comment/${commentId}/reply`, {
         content: newReply
       });
+      // API 응답 구조에 맞게 댓글 업데이트 로직 수정 필요
+      // 현재 API 명세에는 대댓글 관련 정보가 없으므로 기존 로직 유지
       setPost(prev => ({
         ...prev,
         comments: prev.comments.map(comment =>
@@ -138,10 +261,7 @@ const PostDetail = () => {
       const dummyReply = {
         id: Date.now(),
         content: newReply,
-        author: {
-          id: 'currentUser',
-          nickname: '현재 사용자'
-        },
+        author: '현재 사용자',
         createdAt: new Date().toISOString()
       };
       setPost(prev => ({
@@ -195,10 +315,14 @@ const PostDetail = () => {
           </div>
           
           <div className="post-likes">
-            <button onClick={handleLike}>
-              <i className="bx bx-like"></i> 추천
+            <button 
+              onClick={handleLike}
+              className={post.isLiked ? 'liked' : ''}
+            >
+              <i className={`bx ${post.isLiked ? 'bxs-like' : 'bx-like'}`}></i> 
+              {post.isLiked ? '좋아요 취소' : '좋아요'}
             </button>
-            <span>{post.recommendCount}</span>
+            <span>{post.likeCount}</span>
           </div>
 
           <section className="comments-section">
@@ -212,20 +336,34 @@ const PostDetail = () => {
               <button onClick={handleCommentSubmit}>댓글 작성</button>
             </div>
 
+            // 댓글 목록 렌더링 부분 수정
             <ul>
               {post.comments.map(comment => (
                 <li key={comment.id}>
                   <div className="comment-header">
-                    <p className="comment-author">{comment.author.nickname}</p>
-                    <button 
-                      className="reply-toggle-btn"
-                      onClick={() => setReplyingTo(comment.id)}
-                    >
-                      답글
-                    </button>
+                    <p className="comment-author">{comment.author}</p>
+                    <div className="comment-actions">
+                      <button 
+                        className="reply-toggle-btn"
+                        onClick={() => setReplyingTo(comment.id)}
+                      >
+                        답글
+                      </button>
+                      {/* 댓글 삭제 버튼 추가 */}
+                      <button 
+                        className="delete-comment-btn"
+                        onClick={() => handleDeleteComment(comment.id)}
+                      >
+                        삭제
+                      </button>
+                    </div>
                   </div>
                   <p>{comment.content}</p>
+                  <p className="comment-date">
+                    {new Date(comment.createdAt).toLocaleString()}
+                  </p>
                   
+                  {/* 나머지 코드 (답글 관련) 유지 */}
                   {replyingTo === comment.id && (
                     <div className="add-reply">
                       <textarea
@@ -244,7 +382,7 @@ const PostDetail = () => {
                       {comment.replies.map(reply => (
                         <div key={reply.id}>
                           <div className="comment-header">
-                            <p className="comment-author">{reply.author.nickname}</p>
+                            <p className="comment-author">{reply.author}</p>
                           </div>
                           <p>{reply.content}</p>
                         </div>

@@ -243,7 +243,7 @@ const MainPage = () => {
               <h3>환영합니다!</h3>
             </div>
             <p className="profile-info">테스트 사용자님</p>
-            <button className="write-post-btn">
+            <button className="write-post-btn" onClick={() => navigate('/create-post')}>
               <i className="bx bx-edit"></i> 새 글 작성하기
             </button>
           </div>

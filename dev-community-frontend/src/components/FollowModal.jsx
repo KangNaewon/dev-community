@@ -17,14 +17,15 @@ const FollowModal = ({ type, users, onClose, currentUserId }) => {
 
   const handleFollow = async (userId) => {
     try {
-      await axios.post(`/user/follow/${userId}`);
+      // 새로운 API 엔드포인트 사용
+      await axios.post(`/member/${userId}/follow`);
       setFollowingStatus(prev => ({
         ...prev,
         [userId]: true
       }));
     } catch (error) {
       console.error('Error following user:', error);
-      // 서버 연결 실패 시에도 UI 상태는 변경
+      // 서버 연결 실패 시에도 UI 상태는 변경 (실제 환경에서는 에러 처리 필요)
       setFollowingStatus(prev => ({
         ...prev,
         [userId]: true
@@ -34,14 +35,15 @@ const FollowModal = ({ type, users, onClose, currentUserId }) => {
 
   const handleUnfollow = async (userId) => {
     try {
-      await axios.delete(`/user/unfollow/${userId}`);
+      // 새로운 API 엔드포인트 사용
+      await axios.delete(`/member/${userId}/follow`);
       setFollowingStatus(prev => ({
         ...prev,
         [userId]: false
       }));
     } catch (error) {
       console.error('Error unfollowing user:', error);
-      // 서버 연결 실패 시에도 UI 상태는 변경
+      // 서버 연결 실패 시에도 UI 상태는 변경 (실제 환경에서는 에러 처리 필요)
       setFollowingStatus(prev => ({
         ...prev,
         [userId]: false
@@ -78,8 +80,8 @@ const FollowModal = ({ type, users, onClose, currentUserId }) => {
                       )}
                     </div>
                     <div className="user-details">
-                      <span className="user-id">{user.id}</span>
                       <span className="user-nickname">{user.nickname}</span>
+                      <span className="user-id">@{user.loginId || user.id}</span>
                     </div>
                   </div>
                   

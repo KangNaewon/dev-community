@@ -6,10 +6,11 @@ import FollowModal from './FollowModal';
 
 // 더미 데이터 정의
 const dummyUserInfo = {
-  id: 'user123',
   nickname: 'DevUser',
-  email: 'user@example.com',
-  profileImageUrl: null
+  profileImageUrl: null,
+  followerCount: 3,
+  followingCount: 2,
+  receivedLikeCount: 15
 };
 
 const dummyFollowers = [
@@ -31,22 +32,39 @@ const MyPage = () => {
   const [followModalType, setFollowModalType] = useState('');
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [loginId, setLoginId] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
+    // localStorage에서 사용자 정보 가져오기
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      navigate('/');
+      return;
+    }
+    
+    const user = JSON.parse(userStr);
+    setLoginId(user.loginId);
+    
     const fetchUserInfo = async () => {
       try {
-        const response = await axios.get('/user/me');
-        setUserInfo(response.data);
+        const response = await axios.get(`/member/${user.loginId}`);
+        setUserInfo({
+          ...response.data,
+          id: user.loginId // id 정보 추가 (UI에서 사용)
+        });
         setLoading(false);
         
         // 팔로워 및 팔로잉 데이터 가져오기
-        fetchFollowers();
-        fetchFollowing();
+        fetchFollowers(user.loginId);
+        fetchFollowing(user.loginId);
       } catch (error) {
         console.error('Error fetching user info:', error);
         // 서버 연결 실패 시 더미 데이터 사용
-        setUserInfo(dummyUserInfo);
+        setUserInfo({
+          ...dummyUserInfo,
+          id: user.loginId
+        });
         setFollowers(dummyFollowers);
         setFollowing(dummyFollowing);
         setLoading(false);
@@ -56,10 +74,16 @@ const MyPage = () => {
     fetchUserInfo();
   }, [navigate]);
 
-  const fetchFollowers = async () => {
+  const fetchFollowers = async (userLoginId) => {
     try {
-      const response = await axios.get('/user/followers');
-      setFollowers(response.data);
+      const response = await axios.get(`/member/${userLoginId}/followers`);
+      // 기존 데이터 구조와 맞추기 위해 id 필드 추가
+      const formattedFollowers = response.data.map(follower => ({
+        ...follower,
+        id: follower.loginId,
+        isFollowing: false // API에서 제공하지 않으므로 기본값 설정
+      }));
+      setFollowers(formattedFollowers);
     } catch (error) {
       console.error('Error fetching followers:', error);
       // 서버 연결 실패 시 더미 데이터 사용
@@ -67,10 +91,16 @@ const MyPage = () => {
     }
   };
 
-  const fetchFollowing = async () => {
+  const fetchFollowing = async (userLoginId) => {
     try {
-      const response = await axios.get('/user/following');
-      setFollowing(response.data);
+      const response = await axios.get(`/member/${userLoginId}/followings`);
+      // 기존 데이터 구조와 맞추기 위해 id 필드 추가
+      const formattedFollowing = response.data.map(following => ({
+        ...following,
+        id: following.loginId,
+        isFollowing: true // 팔로잉 목록이므로 true로 설정
+      }));
+      setFollowing(formattedFollowing);
     } catch (error) {
       console.error('Error fetching following:', error);
       // 서버 연결 실패 시 더미 데이터 사용
@@ -108,7 +138,7 @@ const MyPage = () => {
   return (
     <div className="mypage-container">
       <header className="community-header">
-        <button className="back-btn" onClick={() => navigate('/')}>
+        <button className="back-btn" onClick={() => navigate('/main')}>
           <i className="bx bx-arrow-back"></i>
         </button>
         <div className="logo-container">
@@ -134,17 +164,20 @@ const MyPage = () => {
               <span className="stat-label">Posts</span>
             </div>
             <div className="stat clickable" onClick={openFollowersModal}>
-              <span className="stat-count">{followers.length}</span>
+              <span className="stat-count">{userInfo.followerCount}</span>
               <span className="stat-label">Followers</span>
             </div>
             <div className="stat clickable" onClick={openFollowingModal}>
-              <span className="stat-count">{following.length}</span>
+              <span className="stat-count">{userInfo.followingCount}</span>
               <span className="stat-label">Following</span>
+            </div>
+            <div className="stat">
+              <span className="stat-count">{userInfo.receivedLikeCount}</span>
+              <span className="stat-label">Likes</span>
             </div>
           </div>
           <div className="profile-bio">
             <h2 className="nickname">{userInfo.nickname}</h2>
-            <p className="email">{userInfo.email}</p>
             <p className="bio-text">Welcome to my profile!</p>
           </div>
           <button className="edit-profile-btn" onClick={handleEditProfile}>Edit Profile</button>
