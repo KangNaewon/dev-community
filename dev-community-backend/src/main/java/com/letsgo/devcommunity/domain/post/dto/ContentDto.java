@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class ContentDto {
     Long id;
     String title;
-    AuthorDTO authorDTO;
+    AuthorDTO author;
     Integer likeCount;
     Integer commentCount;
     LocalDateTime createdAt;
