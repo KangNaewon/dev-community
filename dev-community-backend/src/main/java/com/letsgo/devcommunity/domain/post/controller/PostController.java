@@ -1,9 +1,7 @@
 package com.letsgo.devcommunity.domain.post.controller;
 
-import com.letsgo.devcommunity.domain.post.dto.PostDto;
+import com.letsgo.devcommunity.domain.post.dto.*;
 import  com.letsgo.devcommunity.domain.post.entity.Comment;
-import com.letsgo.devcommunity.domain.post.dto.postListDto;
-import com.letsgo.devcommunity.domain.post.entity.Comment;
 import com.letsgo.devcommunity.domain.post.entity.Post;
 import com.letsgo.devcommunity.domain.post.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +20,8 @@ public class PostController {
     }
 
     @PostMapping
-    public Post createPost(@RequestBody Post post) {
-        return postService.createPost(post);
+    public CreateResponseDto createPost(@RequestBody UpdateDto updateDto) {
+        return postService.createPost(updateDto);
     }
 
     @GetMapping("/{postId}")
@@ -32,15 +30,15 @@ public class PostController {
     }
 
     @GetMapping
-    public postListDto getAll(@RequestParam(defaultValue = "0") Integer page,
+    public PostListDto getAll(@RequestParam(defaultValue = "0") Integer page,
                               @RequestParam(defaultValue = "10") Integer size,
                               @RequestParam(defaultValue = "createdAt,desc") String sort) {
         return postService.findAll(page, size, sort);
     }
 
     @PutMapping("/{postId}")
-    public Post updatePost(@PathVariable("postId") Long id, @RequestBody Post post) {
-        return postService.updatePost(id,post);
+    public UpdateResponseDto updatePost(@PathVariable("postId") Long id, @RequestBody UpdateDto updateDto) {
+        return postService.updatePost(id, updateDto);
     }
 
     @DeleteMapping("/{postId}")
@@ -49,7 +47,7 @@ public class PostController {
     }
 
     @PostMapping("/{postId}/comment")
-    public Comment createComment(@PathVariable("postId") Long id, @RequestBody Comment comment){
+    public CreateResponseDto createComment(@PathVariable("postId") Long id, @RequestBody CreateCommentDto comment){
         return postService.createComment(id, comment);
     }
 
@@ -58,16 +56,17 @@ public class PostController {
         postService.deleteComment(id);
     }
 
-    @PostMapping("/{postId}/postLike")
+    @PostMapping("/{postId}/like")
     public void createPostLike(@PathVariable("postId") Long id) {
-        postService.createPostLike(id, 1L);
+        postService.createPostLike(id);
     }
 
-    @DeleteMapping("/{postId}/postLike")
+    @DeleteMapping("/{postId}/like")
     public void deletePostLike(@PathVariable("postId") Long id){
-        postService.deletePostLike(id, 1L);
+        postService.deletePostLike(id);
     }
 
+    //추후 수정 필요
     @GetMapping("/my/{userId}")
     public List<Post> getUserPosts(@PathVariable("userId") Long userId) {
         return postService.getUserPosts(userId);

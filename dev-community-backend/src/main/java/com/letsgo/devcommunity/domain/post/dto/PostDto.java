@@ -1,7 +1,5 @@
 package com.letsgo.devcommunity.domain.post.dto;
 
-import com.letsgo.devcommunity.domain.member.entity.Member;
-import com.letsgo.devcommunity.domain.post.entity.Comment;
 import com.letsgo.devcommunity.domain.post.entity.Post;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,29 +10,23 @@ import java.util.List;
 @Getter
 @Setter
 public class PostDto {
-    private Long postId;
+    private Long id;
     private String title;
     private String content;
+    private AuthorDTO author;
     private LocalDateTime createdAt;
-    private int postLikeCount;
-    private boolean isPostLiked;
-    private List<Comment> comments;
-    private Long authorId;
-    private String authorNickname;
-    private String authorProfileImageUrl;
+    private Integer likeCount;
+    private Boolean isLiked;
+    private List<CommentDto> comments;
 
-    public PostDto(Post post, Member member, List<Comment> comments, Integer postLikeCount, Boolean isPostLiked) {
-        this.postId = post.getId();
+    public PostDto(Post post, AuthorDTO author, Integer likeCount, Boolean isLiked, List<CommentDto> comments) {
+        this.id = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
+        this.author = author;
         this.createdAt = post.getCreatedAt();
-        this.postLikeCount = postLikeCount;
-        this.isPostLiked = isPostLiked;
+        this.likeCount = likeCount;
+        this.isLiked = isLiked;
         this.comments = comments;
-        this.authorId = member.getId();
-        this.authorNickname = member.getNickname();
-        this.authorProfileImageUrl = member.getProfileImageUrl();
     }
-
-    public PostDto() {}
 }

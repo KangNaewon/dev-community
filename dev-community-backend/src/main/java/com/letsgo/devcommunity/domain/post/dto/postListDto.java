@@ -1,18 +1,20 @@
 package com.letsgo.devcommunity.domain.post.dto;
 
-import jakarta.persistence.PrePersist;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-public class postListDto {
+@Getter
+@Setter
+public class PostListDto {
     Integer totalPages;
     Integer totalElements;
     Integer number;
     Integer size;
-    List<contentDto> content;
+    List<ContentDto> content;
 
-    public postListDto(Integer totalPages, Integer totalElements, Integer number, Integer size, List<contentDto> content) {
+    public PostListDto(Integer totalPages, Integer totalElements, Integer number, Integer size, List<ContentDto> content) {
         this.totalPages = totalPages;
         this.totalElements = totalElements;
         this.number = number;

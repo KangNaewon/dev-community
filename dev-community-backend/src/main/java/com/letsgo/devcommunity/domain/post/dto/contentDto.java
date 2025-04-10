@@ -1,7 +1,6 @@
 package com.letsgo.devcommunity.domain.post.dto;
 
 import com.letsgo.devcommunity.domain.post.entity.Post;
-import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Setter
-public class contentDto {
+public class ContentDto {
     Long id;
     String title;
     AuthorDTO authorDTO;
@@ -20,8 +19,8 @@ public class contentDto {
     Integer commentCount;
     LocalDateTime createdAt;
 
-    public static contentDto fromEntity(Post post, Integer likeCount, Integer commentCount, AuthorDTO authorDTO) {
-        return new contentDto(
+    public static ContentDto fromEntity(Post post, Integer likeCount, Integer commentCount, AuthorDTO authorDTO) {
+        return new ContentDto(
                 post.getId(),
                 post.getTitle(),
                 authorDTO,
