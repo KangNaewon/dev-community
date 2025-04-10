@@ -2,10 +2,7 @@ package com.letsgo.devcommunity.domain.post.service;
 
 import com.letsgo.devcommunity.domain.member.entity.Member;
 import com.letsgo.devcommunity.domain.member.repository.MemberRepository;
-import com.letsgo.devcommunity.domain.post.dto.PostDto;
-import com.letsgo.devcommunity.domain.post.dto.AuthorDTO;
-import com.letsgo.devcommunity.domain.post.dto.contentDto;
-import com.letsgo.devcommunity.domain.post.dto.postListDto;
+import com.letsgo.devcommunity.domain.post.dto.*;
 import com.letsgo.devcommunity.domain.post.entity.Comment;
 import com.letsgo.devcommunity.domain.post.entity.Post;
 import com.letsgo.devcommunity.domain.post.entity.PostLike;
@@ -13,6 +10,8 @@ import com.letsgo.devcommunity.domain.post.repository.PostRepository;
 import com.letsgo.devcommunity.domain.post.repository.PostLikeRepository;
 import com.letsgo.devcommunity.domain.post.repository.CommentRepository;
 
+import com.letsgo.devcommunity.global.util.SessionUtils;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,17 +30,23 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final PostLikeRepository postLikeRepository;
     private final MemberRepository memberRepository;
+    private final HttpSession httpSession;
 
     @Autowired
-    public PostService(PostRepository postRepository, CommentRepository commentRepository, PostLikeRepository postLikeRepository, MemberRepository memberRepository) {
+    public PostService(PostRepository postRepository, CommentRepository commentRepository, PostLikeRepository postLikeRepository, MemberRepository memberRepository, HttpSession httpSession) {
         this.postLikeRepository = postLikeRepository;
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.memberRepository = memberRepository;
+        this.httpSession = httpSession;
     }
 
-    public Post createPost(Post post) {
-        return postRepository.save(post);
+    public CreateResponseDto createPost(UpdateDto updateDto) {
+        Post post = new Post();
+        post.setTitle(updateDto.getTitle());
+        post.setContent(updateDto.getContent());
+        postRepository.save(post);
+        return new CreateResponseDto(post.getId(), post.getCreatedAt());
     }
 
     public Post findById(Long id) {
@@ -49,7 +54,7 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
     }
 
-    public postListDto findAll(Integer page, Integer size, String sort) {
+    public PostListDto findAll(Integer page, Integer size, String sort) {
         String[] sortParams = sort.split(",");
         String sortBy = sortParams[0];
         Sort.Direction direction = Sort.Direction.fromString(sortParams[1]);
@@ -57,7 +62,7 @@ public class PostService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         Page<Post> postPage = postRepository.findAll(pageable);
 
-        List<contentDto> contentList = postPage.getContent().stream()
+        List<ContentDto> contentList = postPage.getContent().stream()
                 .map(post -> {
                     int likeCount = postLikeRepository.countByPostId(post.getId());
                     int commentCount = commentRepository.countByPostId(post.getId());
@@ -65,11 +70,11 @@ public class PostService {
                     String nickname = user.map(Member::getNickname)
                             .orElse(null);
                     AuthorDTO authorDTO = new AuthorDTO(post.getUserId(), nickname);
-                    return contentDto.fromEntity(post, likeCount, commentCount, authorDTO);
+                    return ContentDto.fromEntity(post, likeCount, commentCount, authorDTO);
                 })
                 .collect(Collectors.toList());
 
-        return new postListDto(
+        return new PostListDto(
                 postPage.getTotalPages(),
                 (int) postPage.getTotalElements(),
                 postPage.getNumber(),
@@ -78,34 +83,43 @@ public class PostService {
         );
     }
 
-    public Post updatePost(Long id, Post updatedPost) {
+    public UpdateResponseDto updatePost(Long id, UpdateDto updateDto) {
         Post post = findById(id);
-        post.setTitle(updatedPost.getTitle());
-        post.setContent(updatedPost.getContent());
-        return postRepository.save(post);
+        post.setTitle(updateDto.getTitle());
+        post.setContent(updateDto.getContent());
+        postRepository.save(post);
+        return new UpdateResponseDto(post.getId(), post.getUpdatedAt());
     }
 
     public void deletePost(Long id) {
         postRepository.deleteById(id);
     }
 
-    public Comment createComment(Long id, Comment comment) {
-        return commentRepository.save(comment);
+    public CreateResponseDto createComment(Long postId, CreateCommentDto content) {
+        Comment comment = new Comment();
+        comment.setContent(content.getContent());
+        comment.setPostId(postId);
+        Member loginMember = SessionUtils.getLoginMember(httpSession);
+        comment.setUserId(loginMember.getId());
+        commentRepository.save(comment);
+        return new CreateResponseDto(comment.getId(), comment.getCreated_at());
     }
 
     public void deleteComment(Long id) {
         commentRepository.deleteById(id);
     }
 
-    public void createPostLike(Long postId, Long userId) {
-        final var star = postLikeRepository.findByPostIdAndUserId(postId, userId);
+    public void createPostLike(Long postId) {
+        Member loginMember = SessionUtils.getLoginMember(httpSession);
+        final var star = postLikeRepository.findByPostIdAndUserId(postId, loginMember.getId());
         if(star.isEmpty()){
-            postLikeRepository.save(new PostLike(userId, postId));
+            postLikeRepository.save(new PostLike(loginMember.getId(), postId));
         }
     }
 
-    public void deletePostLike(Long postId, Long userId) {
-        postLikeRepository.deleteByPostIdAndUserId(postId, userId);
+    public void deletePostLike(Long postId) {
+        Member loginMember = SessionUtils.getLoginMember(httpSession);
+        postLikeRepository.deleteByPostIdAndUserId(postId, loginMember.getId());
     }
 
     public List<Post> getUserPosts(Long userId){
@@ -127,12 +141,27 @@ public class PostService {
             throw new IllegalArgumentException("post not found");
         }
         Long userId = post.get().getUserId();
-        Optional<Member> member = memberRepository.findById(userId);
+        Optional<Member> member = memberRepository.findById(userId); // Post 작성자
         if(member.isEmpty()){
             throw new IllegalArgumentException("member not found");
         }
+        AuthorDTO authorDTO = new AuthorDTO(member.get().getId(), member.get().getNickname());
         List<Comment> comments = commentRepository.findAllByPostId(postId);
-        List<PostLike> postLikes = postLikeRepository.findAllByPostId(postId);
-        return new PostDto(post.get(), member.get(), comments, postLikes.size(), false);
+        List<CommentDto> commentDtos = new ArrayList<>();
+        comments.forEach(comment -> {
+            Optional<Member> member1 = memberRepository.findById(comment.getUserId());
+            if(member1.isEmpty()){
+                throw new IllegalArgumentException("member not found");
+            }
+            String author = member1.get().getNickname(); // 댓글 작성자
+            CommentDto commentDto = new CommentDto(comment.getId(), author, comment.getContent(), comment.getCreated_at());
+            commentDtos.add(commentDto);
+        });
+        Integer likeCount = postLikeRepository.countByPostId(postId);
+        Member loginMember = SessionUtils.getLoginMember(httpSession);
+        Long loginMemberId = loginMember.getId();
+        Optional<PostLike> postLike = postLikeRepository.findByPostIdAndUserId(postId, loginMemberId);
+        Boolean isLiked = postLike.isPresent();
+        return new PostDto(post.get(), authorDTO, likeCount, isLiked, commentDtos);
     }
 }
