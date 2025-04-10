@@ -3,6 +3,9 @@ package com.letsgo.devcommunity.domain.post.service;
 import com.letsgo.devcommunity.domain.member.entity.Member;
 import com.letsgo.devcommunity.domain.member.repository.MemberRepository;
 import com.letsgo.devcommunity.domain.post.dto.PostDto;
+import com.letsgo.devcommunity.domain.post.dto.AuthorDTO;
+import com.letsgo.devcommunity.domain.post.dto.contentDto;
+import com.letsgo.devcommunity.domain.post.dto.postListDto;
 import com.letsgo.devcommunity.domain.post.entity.Comment;
 import com.letsgo.devcommunity.domain.post.entity.Post;
 import com.letsgo.devcommunity.domain.post.entity.PostLike;
@@ -11,11 +14,16 @@ import com.letsgo.devcommunity.domain.post.repository.PostLikeRepository;
 import com.letsgo.devcommunity.domain.post.repository.CommentRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -41,8 +49,33 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
     }
 
-    public List<Post> findAll() {
-        return postRepository.findAll();
+    public postListDto findAll(Integer page, Integer size, String sort) {
+        String[] sortParams = sort.split(",");
+        String sortBy = sortParams[0];
+        Sort.Direction direction = Sort.Direction.fromString(sortParams[1]);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Page<Post> postPage = postRepository.findAll(pageable);
+
+        List<contentDto> contentList = postPage.getContent().stream()
+                .map(post -> {
+                    int likeCount = postLikeRepository.countByPostId(post.getId());
+                    int commentCount = commentRepository.countByPostId(post.getId());
+                    Optional<Member> user = memberRepository.findById(post.getUserId());
+                    String nickname = user.map(Member::getNickname)
+                            .orElse(null);
+                    AuthorDTO authorDTO = new AuthorDTO(post.getUserId(), nickname);
+                    return contentDto.fromEntity(post, likeCount, commentCount, authorDTO);
+                })
+                .collect(Collectors.toList());
+
+        return new postListDto(
+                postPage.getTotalPages(),
+                (int) postPage.getTotalElements(),
+                postPage.getNumber(),
+                postPage.getSize(),
+                contentList
+        );
     }
 
     public Post updatePost(Long id, Post updatedPost) {
