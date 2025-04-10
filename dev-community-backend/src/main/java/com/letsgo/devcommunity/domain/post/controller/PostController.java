@@ -51,10 +51,7 @@ public class PostController {
         return postService.createComment(id, comment);
     }
 
-    @DeleteMapping("/comment/{commentId}")
-    public void deleteComment(@PathVariable("commentId") Long id) {
-        postService.deleteComment(id);
-    }
+
 
     @PostMapping("/{postId}/like")
     public void createPostLike(@PathVariable("postId") Long id) {
