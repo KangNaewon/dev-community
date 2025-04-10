@@ -2,6 +2,8 @@ package com.letsgo.devcommunity.domain.post.controller;
 
 import com.letsgo.devcommunity.domain.post.dto.PostDto;
 import  com.letsgo.devcommunity.domain.post.entity.Comment;
+import com.letsgo.devcommunity.domain.post.dto.postListDto;
+import com.letsgo.devcommunity.domain.post.entity.Comment;
 import com.letsgo.devcommunity.domain.post.entity.Post;
 import com.letsgo.devcommunity.domain.post.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +32,10 @@ public class PostController {
     }
 
     @GetMapping
-    public List<Post> getAllPosts() {
-        return postService.findAll();
+    public postListDto getAll(@RequestParam(defaultValue = "0") Integer page,
+                              @RequestParam(defaultValue = "10") Integer size,
+                              @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        return postService.findAll(page, size, sort);
     }
 
     @PutMapping("/{postId}")
