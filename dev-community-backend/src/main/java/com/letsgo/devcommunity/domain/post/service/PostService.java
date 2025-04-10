@@ -42,9 +42,11 @@ public class PostService {
     }
 
     public CreateResponseDto createPost(UpdateDto updateDto) {
+        Member loginMember = SessionUtils.getLoginMember(httpSession);
         Post post = new Post();
         post.setTitle(updateDto.getTitle());
         post.setContent(updateDto.getContent());
+        post.setUserId(loginMember.getId());
         postRepository.save(post);
         return new CreateResponseDto(post.getId(), post.getCreatedAt());
     }
