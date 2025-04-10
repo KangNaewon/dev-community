@@ -32,22 +32,6 @@ pipeline {
             }
         }
 
-        // React 앱 빌드 (정적 파일 생성)
-        stage('Build Frontend') {
-            agent {
-                docker {
-                    image 'node:20'
-                }
-            }
-            steps {
-                dir('dev-community-frontend') {
-                    sh 'ls -al .'
-                    sh 'npm ci --cache .npm-cache'
-                    sh 'CI=false npm run build'
-                }
-            }
-        }
-
         // Docker 이미지 빌드, DockerHub에 push
         stage('Build Docker Image & Push') {
             agent any
