@@ -3,9 +3,8 @@
 # 파이프라인 구성
 1. **Checkout**: GitHub develop 브랜치에서 코드 가져오기
 2. **Clean Docker**: Docker 캐시 및 컨테이너 정리
-3. **Build Frontend**: Node 20 이미지에서 npm build 수행
-4. **Build Docker Image & Push**: Docker Hub에 이미지 push
-5. **Deploy**: 원격 서버에 SSH로 접속해 Docker 컨테이너 재시작
+3. **Build Docker Image & Push**: Docker Hub에 이미지 push
+4. **Deploy**: 원격 서버에 SSH로 접속해 Docker 컨테이너 재시작
 
 # 필요한 Credentials
 - GitHub: `github-credentials`
