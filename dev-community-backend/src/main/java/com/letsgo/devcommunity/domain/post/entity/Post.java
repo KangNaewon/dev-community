@@ -21,7 +21,7 @@ public class Post {
 
     private String content;
 
-    private Long user_id;
+    private Long userId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
