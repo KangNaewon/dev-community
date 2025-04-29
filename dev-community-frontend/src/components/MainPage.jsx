@@ -53,7 +53,7 @@ const MainPage = () => {
             params: {
               page: 0,
               size: 8,
-              sort: 'recommendCount,desc'
+              sort: 'likeCount,desc'
             }
           });
           setPopularPosts(popularResponse.data.content);
@@ -115,7 +115,7 @@ const MainPage = () => {
         <div className="header-left">
           <div className="logo-container">
             <img src="https://cdn-icons-png.flaticon.com/512/2721/2721620.png" alt="Logo" className="logo-img" />
-            <h1>DevConnect</h1>
+            <h1>SDC</h1>
           </div>
         </div>
         <div className="header-right">
@@ -182,7 +182,7 @@ const MainPage = () => {
                       </div>
                       <div className="post-likes">
                         <i className="bx bx-like"></i>
-                        <span>{post.recommendCount}</span>
+                        <span>{post.lieCount}</span>
                       </div>
                     </div>
                   ))
@@ -222,7 +222,7 @@ const MainPage = () => {
                       </div>
                       <div className="post-likes">
                         <i className="bx bx-like"></i>
-                        <span>{post.recommendCount}</span>
+                        <span>{post.likeCount}</span>
                       </div>
                     </div>
                   ))
