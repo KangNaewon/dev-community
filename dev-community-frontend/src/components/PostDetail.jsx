@@ -336,12 +336,12 @@ const PostDetail = () => {
               <button onClick={handleCommentSubmit}>댓글 작성</button>
             </div>
 
-            // 댓글 목록 렌더링 부분 수정
             <ul>
               {post.comments.map(comment => (
+                
                 <li key={comment.id}>
                   <div className="comment-header">
-                    <p className="comment-author">{comment.author}</p>
+                    <p className="comment-author">{comment.author.nickname}</p>
                     <div className="comment-actions">
                       <button 
                         className="reply-toggle-btn"

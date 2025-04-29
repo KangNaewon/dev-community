@@ -58,7 +58,7 @@ const AllPosts = () => {
             <div className="post-content">
               <h3 className="post-title">{post.title}</h3>
               <div className="post-meta">
-                <span className="post-author">{post.author}</span>
+                <span className="post-author">{post.author.nickname}</span>
                 <span className="post-date">
                   {new Date(post.createdAt).toLocaleDateString()}
                 </span>
