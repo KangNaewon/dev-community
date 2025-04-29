@@ -82,7 +82,7 @@ const EditPost = () => {
         </button>
         <div className="logo-container">
           <img src="https://cdn-icons-png.flaticon.com/512/2721/2721620.png" alt="Logo" className="logo-img" />
-          <h1>DevConnect</h1>
+          <h1>SDC</h1>
         </div>
       </header>
 
