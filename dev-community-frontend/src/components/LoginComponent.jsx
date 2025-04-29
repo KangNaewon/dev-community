@@ -43,20 +43,6 @@ const LoginComponent = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Test mode for specific ID
-      if (InputId === 'test' && InputPassword === '1234') {
-        setLoginError('');
-        setAlert('로그인 성공!');
-        // 테스트 사용자 정보 저장
-        localStorage.setItem('user', JSON.stringify({
-          userId: 0,
-          loginId: InputId,
-          nickname: '테스트 사용자'
-        }));
-        navigate('/main');
-        return;
-      }
-
       const response = await axios.post('/auth/login', {
         id: InputId,
         password: InputPassword
