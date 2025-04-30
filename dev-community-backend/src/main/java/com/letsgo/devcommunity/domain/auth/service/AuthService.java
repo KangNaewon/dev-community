@@ -34,7 +34,7 @@ public class AuthService {
                 null
         );
 
-        Member savedMember = authRepository.save(member);
+        authRepository.save(member);
     }
 
     @Transactional(readOnly = true)
@@ -58,7 +58,7 @@ public class AuthService {
 
     private void validateDuplicateLoginId(String loginId) {
         if (authRepository.existsByLoginId(loginId)) {
-            throw new IllegalArgumentException("이미 사용 중인 ID입니다.");
+            throw new IllegalArgumentException("이미 사용 중인 ID 입니다.");
         }
     }
 
