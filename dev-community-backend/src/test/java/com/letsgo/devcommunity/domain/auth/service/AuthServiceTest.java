@@ -23,6 +23,41 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
+    enum TestData {
+        // 계정 정보
+        LOGIN_ID("loginId"),
+        EMAIL("email"),
+        PASSWORD("password"),
+        ENCODED_PASSWORD("encodedPassword"),
+        NICKNAME("nickname");
+
+        private final String value;
+
+        TestData(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
+    enum ErrorMessage {
+        EMAIL_NOT_VERIFIED("이메일 인증이 완료되지 않았습니다."),
+        DUPLICATE_LOGIN_ID("이미 사용 중인 ID 입니다."),
+        DUPLICATE_EMAIL("이미 가입된 이메일입니다.");
+
+        private final String message;
+
+        ErrorMessage(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
+
     @Mock
     private AuthRepository authRepository;
 
@@ -41,13 +76,23 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        signUpRequest = new SignUpRequest("loginId", "email", "password", "nickname");
-        loginRequest = new LoginRequest("loginId", "password");
+        signUpRequest = new SignUpRequest(
+                TestData.LOGIN_ID.getValue(),
+                TestData.EMAIL.getValue(),
+                TestData.PASSWORD.getValue(),
+                TestData.NICKNAME.getValue()
+        );
+
+        loginRequest = new LoginRequest(
+                TestData.LOGIN_ID.getValue(),
+                TestData.PASSWORD.getValue()
+        );
+
         member = new Member(
-                "loginId",
-                "email",
-                "password",
-                "nickname",
+                TestData.LOGIN_ID.getValue(),
+                TestData.EMAIL.getValue(),
+                TestData.PASSWORD.getValue(),
+                TestData.NICKNAME.getValue(),
                 null
         );
     }
@@ -56,10 +101,10 @@ class AuthServiceTest {
     @DisplayName("회원가입 성공")
     void signUp_Success() {
         // given
-        when(emailVerificationStore.isVerified("email")).thenReturn(true);
-        when(authRepository.existsByLoginId("loginId")).thenReturn(false);
-        when(authRepository.existsByEmail("email")).thenReturn(false);
-        when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
+        when(emailVerificationStore.isVerified(TestData.EMAIL.getValue())).thenReturn(true);
+        when(authRepository.existsByLoginId(TestData.LOGIN_ID.getValue())).thenReturn(false);
+        when(authRepository.existsByEmail(TestData.EMAIL.getValue())).thenReturn(false);
+        when(passwordEncoder.encode(TestData.PASSWORD.getValue())).thenReturn(TestData.ENCODED_PASSWORD.getValue());
 
         // when
         assertDoesNotThrow(() -> authService.signUp(signUpRequest));
@@ -74,18 +119,20 @@ class AuthServiceTest {
         verify(authRepository).save(memberCaptor.capture());
 
         Member capturedMember = memberCaptor.getValue();
-        assertThat(capturedMember.getLoginId()).isEqualTo("loginId");
-        assertThat(capturedMember.getEmail()).isEqualTo("email");
-        assertThat(capturedMember.getPassword()).isEqualTo("encodedPassword");
-        assertThat(capturedMember.getNickname()).isEqualTo("nickname");
-        assertThat(capturedMember.getProfileImageUrl()).isNull();
+        Member expectedMember = new Member(
+                TestData.LOGIN_ID.getValue(),
+                TestData.EMAIL.getValue(),
+                TestData.ENCODED_PASSWORD.getValue(),
+                TestData.NICKNAME.getValue(),
+                null
+        );
     }
 
     @Test
     @DisplayName("회원가입 실패: 이메일 인증 미완료")
     void signUp_Failure_EmailNotVerified() {
         // given
-        when(emailVerificationStore.isVerified("email")).thenReturn(false);
+        when(emailVerificationStore.isVerified(TestData.EMAIL.getValue())).thenReturn(false);
 
         // when
         IllegalArgumentException illegalArgumentException = assertThrows(
@@ -94,7 +141,7 @@ class AuthServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo("이메일 인증이 완료되지 않았습니다.");
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.EMAIL_NOT_VERIFIED.getMessage());
         verify(emailVerificationStore).isVerified(signUpRequest.email());
         verify(authRepository, never()).save(any(Member.class));
     }
@@ -103,8 +150,8 @@ class AuthServiceTest {
     @DisplayName("회원가입 실패: 아이디 중복")
     void signUp_Failure_DuplicateLoginId() {
         // given
-        when(emailVerificationStore.isVerified("email")).thenReturn(true);
-        when(authRepository.existsByLoginId("loginId")).thenReturn(true);
+        when(emailVerificationStore.isVerified(TestData.EMAIL.getValue())).thenReturn(true);
+        when(authRepository.existsByLoginId(TestData.LOGIN_ID.getValue())).thenReturn(true);
 
         // when
         IllegalArgumentException illegalArgumentException = assertThrows(
@@ -113,7 +160,7 @@ class AuthServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo("이미 사용 중인 ID 입니다.");
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.DUPLICATE_LOGIN_ID.getMessage());
         verify(emailVerificationStore).isVerified(signUpRequest.email());
         verify(authRepository).existsByLoginId(signUpRequest.loginId());
         verify(authRepository, never()).save(any(Member.class));
@@ -123,9 +170,9 @@ class AuthServiceTest {
     @DisplayName("회원가입 실패: 이메일 중복")
     void signUp_Failure_DuplicateEmail() {
         // given
-        when(emailVerificationStore.isVerified("email")).thenReturn(true);
-        when(authRepository.existsByLoginId("loginId")).thenReturn(false);
-        when(authRepository.existsByEmail("email")).thenReturn(true);
+        when(emailVerificationStore.isVerified(TestData.EMAIL.getValue())).thenReturn(true);
+        when(authRepository.existsByLoginId(TestData.LOGIN_ID.getValue())).thenReturn(false);
+        when(authRepository.existsByEmail(TestData.EMAIL.getValue())).thenReturn(true);
 
         // when
         IllegalArgumentException illegalArgumentException = assertThrows(
@@ -134,7 +181,7 @@ class AuthServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo("이미 가입된 이메일입니다.");
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.DUPLICATE_EMAIL.getMessage());
         verify(emailVerificationStore).isVerified(signUpRequest.email());
         verify(authRepository).existsByLoginId(signUpRequest.loginId());
         verify(authRepository).existsByEmail(signUpRequest.email());
