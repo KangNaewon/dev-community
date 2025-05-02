@@ -141,7 +141,7 @@ const MyPage = () => {
         <button className="back-btn" onClick={() => navigate('/main')}>
           <i className="bx bx-arrow-back"></i>
         </button>
-        <div className="logo-container">
+        <div className="logo-container" onClick={() => navigate('/main')}>
           <img src="https://cdn-icons-png.flaticon.com/512/2721/2721620.png" alt="Logo" className="logo-img" />
           <h1>SDC</h1>
         </div>

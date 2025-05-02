@@ -113,7 +113,7 @@ const MainPage = () => {
     <div className="community-page">
       <header className="community-header">
         <div className="header-left">
-          <div className="logo-container">
+          <div className="logo-container" onClick={() => navigate("/main")}>
             <img src="https://cdn-icons-png.flaticon.com/512/2721/2721620.png" alt="Logo" className="logo-img" />
             <h1>SDC</h1>
           </div>
