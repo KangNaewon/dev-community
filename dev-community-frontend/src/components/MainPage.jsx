@@ -39,13 +39,24 @@ const MainPage = () => {
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [nickname, setNickname] = useState('');
 
   // 데이터 가져오기
   useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        setNickname(parsedUser.nickname);
+      } catch (e) {
+        console.error('유저 정보 파싱 실패', e);
+      }
+    }
+
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        
+
         // 서버 요청 시도
         try {
           // 인기 게시글 가져오기
@@ -53,11 +64,18 @@ const MainPage = () => {
             params: {
               page: 0,
               size: 8,
-              sort: 'likeCount,desc'
+              // sort: 'recommendCount,desc'
+              //  sort: 'likeCount,desc'
             }
           });
-          setPopularPosts(popularResponse.data.content);
-          
+          // 프론트에서 likeCount 기준으로 정렬
+          const sortedByLikeCount = popularResponse.data.content
+            .slice() // 원본 배열 복사
+            .sort((a, b) => b.likeCount - a.likeCount);
+
+          // 상위 8개만 선택
+          setPopularPosts(sortedByLikeCount.slice(0, 8));
+
           // 전체 게시글 가져오기
           const allPostsResponse = await axios.get('/post', {
             params: {
@@ -75,7 +93,7 @@ const MainPage = () => {
             new Date(b.createdAt) - new Date(a.createdAt)
           ));*/
         }
-        
+
         setLoading(false);
       } catch (error) {
         console.error('게시글 로딩 실패:', error);
@@ -134,9 +152,9 @@ const MainPage = () => {
           <p>지식을 공유하고 함께 성장하세요</p>
         </div>
         <div className="hero-image">
-          <img 
-            src="https://image.freepik.com/free-vector/developer-activity-concept-illustration_114360-2801.jpg" 
-            alt="Developer activity" 
+          <img
+            src="https://image.freepik.com/free-vector/developer-activity-concept-illustration_114360-2801.jpg"
+            alt="Developer activity"
           />
         </div>
       </div>
@@ -157,7 +175,7 @@ const MainPage = () => {
             <section className="posts-section popular-posts">
               <div className="section-header">
                 <h2>인기 게시글</h2>
-                <button 
+                <button
                   className="show-more-btn"
                   onClick={() => navigate('/popular-posts')}
                 >
@@ -167,9 +185,9 @@ const MainPage = () => {
               <div className="post-list">
                 {popularPosts.length > 0 ? (
                   popularPosts.map(post => (
-                    <div 
-                      key={post.id} 
-                      className="post-item" 
+                    <div
+                      key={post.id}
+                      className="post-item"
                       onClick={() => handlePostClick(post.id)}
                       style={{ cursor: 'pointer' }}
                     >
@@ -182,7 +200,7 @@ const MainPage = () => {
                       </div>
                       <div className="post-likes">
                         <i className="bx bx-like"></i>
-                        <span>{post.lieCount}</span>
+                        <span>{post.likeCount}</span>
                       </div>
                     </div>
                   ))
@@ -197,7 +215,7 @@ const MainPage = () => {
             <section className="posts-section all-posts">
               <div className="section-header">
                 <h2>전체 게시글</h2>
-                <button 
+                <button
                   className="show-more-btn"
                   onClick={() => navigate('/all-posts')}
                 >
@@ -207,9 +225,9 @@ const MainPage = () => {
               <div className="post-list">
                 {allPosts.length > 0 ? (
                   allPosts.map(post => (
-                    <div 
-                      key={post.id} 
-                      className="post-item" 
+                    <div
+                      key={post.id}
+                      className="post-item"
                       onClick={() => handlePostClick(post.id)}
                       style={{ cursor: 'pointer' }}
                     >
@@ -242,12 +260,12 @@ const MainPage = () => {
               <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile" className="profile-img" />
               <h3>환영합니다!</h3>
             </div>
-            <p className="profile-info">테스트 사용자님</p>
+            <p className="profile-info">{nickname ? `${nickname}님` : '사용자님'}</p>
             <button className="write-post-btn" onClick={() => navigate('/create-post')}>
               <i className="bx bx-edit"></i> 새 글 작성하기
             </button>
           </div>
-          
+
           <div className="sidebar-section">
             <h3>카테고리</h3>
             <ul>
@@ -259,7 +277,7 @@ const MainPage = () => {
               <li><i className="bx bx-link-alt"></i> 블록체인</li>
             </ul>
           </div>
-          
+
           <div className="sidebar-section">
             <h3>인기 태그</h3>
             <div className="tag-cloud">
