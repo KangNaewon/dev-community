@@ -270,3 +270,4 @@ gradle-app.setting
 # End of https://www.toptal.com/developers/gitignore/api/gradle,java,macos,windows,intellij+all,eclipse
 
 application.properties
+.vscode

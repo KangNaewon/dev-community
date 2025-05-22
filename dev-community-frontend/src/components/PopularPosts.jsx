@@ -5,32 +5,38 @@ import './PostsPage.css';
 
 const PopularPosts = () => {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const postsPerPage = 10;
 
-  const fetchPopularPosts = async (page) => {
+  const fetchAllPosts = async () => {
     try {
       const response = await axios.get('/post', {
         params: {
-          page: page - 1, // 0부터 시작
-          size: postsPerPage,
-          sort: 'likeCount,desc',
+          page: 0,
+          size: 1000, // 충분히 큰 값으로 전체 게시글을 가져옴
+          sort: 'createdAt,desc'
         },
       });
 
-      const { content, totalPages } = response.data;
-      setPosts(content);
-      setTotalPages(totalPages);
+      // likeCount 기준 내림차순 정렬
+      const sorted = [...response.data.content].sort((a, b) => b.likeCount - a.likeCount);
+      setAllPosts(sorted);
     } catch (error) {
       console.error('인기 게시글 불러오기 실패:', error);
     }
   };
 
   useEffect(() => {
-    fetchPopularPosts(currentPage);
-  }, [currentPage]);
+    fetchAllPosts();
+  }, []);
+
+  const totalPages = Math.ceil(allPosts.length / postsPerPage);
+
+  const currentPosts = allPosts.slice(
+    (currentPage - 1) * postsPerPage,
+    currentPage * postsPerPage
+  );
 
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
@@ -44,7 +50,7 @@ const PopularPosts = () => {
       </header>
 
       <main className="posts-main">
-        {posts.map(post => (
+        {currentPosts.map(post => (
           <div
             key={post.id}
             className="post-item"
