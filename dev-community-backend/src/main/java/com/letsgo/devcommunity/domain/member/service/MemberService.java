@@ -41,6 +41,10 @@ public class MemberService {
 
     @Transactional
     public void follow(String targetLoginId, Long currentMemberId) {
+        if(targetLoginId == null || targetLoginId.isEmpty()){
+            throw new IllegalArgumentException("팔로우 대상 ID는 필수입니다.");
+        }
+
         Member from = memberRepository.findById(currentMemberId)
                 .orElseThrow(() -> new IllegalArgumentException("로그인한 회원을 찾을 수 없습니다."));
         Member to = memberRepository.findByLoginId(targetLoginId)
@@ -55,6 +59,10 @@ public class MemberService {
 
     @Transactional
     public void unfollow(String targetLoginId, Long currentMemberId) {
+        if(targetLoginId == null || targetLoginId.isEmpty()){
+            throw new IllegalArgumentException("팔로우 대상 ID는 필수입니다.");
+        }
+
         Member from = memberRepository.findById(currentMemberId)
                 .orElseThrow(() -> new IllegalArgumentException("로그인한 회원을 찾을 수 없습니다."));
         Member to = memberRepository.findByLoginId(targetLoginId)

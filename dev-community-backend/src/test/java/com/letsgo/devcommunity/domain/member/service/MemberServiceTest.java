@@ -16,6 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,7 +41,9 @@ class MemberServiceTest {
         CANNOT_FIND_FOLLOW_TARGET("팔로우 대상 회원을 찾을 수 없습니다."),
         CANNOT_FIND_UNFOLLOW_TARGET("언팔로우 대상 회원을 찾을 수 없습니다."),
         ALREADY_FOLLOWING("이미 팔로우한 사용자입니다."),
-        CANNOT_FIND_FOLLOW_RELATIONSHIP("팔로우 관계가 존재하지 않습니다.");
+        CANNOT_FIND_FOLLOW_RELATIONSHIP("팔로우 관계가 존재하지 않습니다."),
+        CANNOT_FOLLOW_MYSELF("자기 자신을 팔로우할 수 없습니다."),
+        TARGET_ID_NULL_OR_EMPTY("팔로우 대상 ID는 필수입니다.");
 
         private final String message;
 
@@ -174,6 +178,57 @@ class MemberServiceTest {
     }
 
     @Test
+    @DisplayName("팔로우 실패: 본인을 팔로우")
+    void follow_Failure_SelfFollow() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        Member followTarget = TestDataFactory.createDefaultMember();
+        when(memberRepository.findById(me.getId())).thenReturn(Optional.of(me));
+        when(memberRepository.findByLoginId(followTarget.getLoginId())).thenReturn(Optional.of(followTarget));
+        when(followRepository.existsByFromMemberAndToMember(me, followTarget)).thenReturn(false);
+
+        // when
+        IllegalArgumentException illegalArgumentException = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.follow(me.getLoginId(), me.getId())
+        );
+
+        // then
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FOLLOW_MYSELF.getMessage());
+        verify(memberRepository).findById(me.getId());
+        verify(memberRepository).findByLoginId(followTarget.getLoginId());
+        verify(followRepository).existsByFromMemberAndToMember(me, followTarget);
+        verify(followRepository, never()).save(any(Follow.class));
+    }
+
+    @Test
+    @DisplayName("팔로우 실패: 팔로우 대상 ID null 또는 빈 문자열")
+    void follow_Failure_NullOrEmptyTargetId() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+
+        // when
+        IllegalArgumentException nullTargetIdException = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.follow(null, me.getId())
+        );
+
+        IllegalArgumentException emptyTargetIdException = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.follow("", me.getId())
+        );
+
+        // then
+        assertThat(nullTargetIdException.getMessage()).isEqualTo(ErrorMessage.TARGET_ID_NULL_OR_EMPTY.getMessage());
+        assertThat(emptyTargetIdException.getMessage()).isEqualTo(ErrorMessage.TARGET_ID_NULL_OR_EMPTY.getMessage());
+
+        verify(memberRepository, never()).findById(anyLong());
+        verify(memberRepository, never()).findByLoginId(anyString());
+        verify(followRepository, never()).existsByFromMemberAndToMember(any(Member.class), any(Member.class));
+        verify(followRepository, never()).save(any(Follow.class));
+    }
+
+    @Test
     @DisplayName("언팔로우 성공")
     void unfollow_Success() {
         // given
@@ -284,6 +339,33 @@ class MemberServiceTest {
     }
 
     @Test
+    @DisplayName("언팔로우 실패: 언팔로우 대상 ID null 또는 빈 문자열")
+    void unfollow_Failure_NullOrEmptyTargetId() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+
+        // when
+        IllegalArgumentException nullTargetIdException = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.unfollow(null, me.getId())
+        );
+
+        IllegalArgumentException emptyTargetIdException = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.unfollow("", me.getId())
+        );
+
+        // then
+        assertThat(nullTargetIdException.getMessage()).isEqualTo(ErrorMessage.TARGET_ID_NULL_OR_EMPTY.getMessage());
+        assertThat(emptyTargetIdException.getMessage()).isEqualTo(ErrorMessage.TARGET_ID_NULL_OR_EMPTY.getMessage());
+
+        verify(memberRepository, never()).findById(anyLong());
+        verify(memberRepository, never()).findByLoginId(anyString());
+        verify(followRepository, never()).findByFromMemberAndToMember(any(Member.class), any(Member.class));
+        verify(followRepository, never()).delete(any(Follow.class));
+    }
+
+    @Test
     @DisplayName("팔로워 목록 조회 성공")
     void getFollowers_Success() {
         // given
@@ -375,6 +457,31 @@ class MemberServiceTest {
     }
 
     @Test
+    @DisplayName("대규모 팔로워 목록 조회")
+    void getFollowers_LargeList() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        when(memberRepository.findByLoginId(me.getLoginId())).thenReturn(Optional.of(me));
+
+        int size = 10000;
+        List<Follow> followerList = TestDataFactory.createFollowerList(me, size);
+
+        when(followRepository.findAllByToMember(me)).thenReturn(followerList);
+
+        // when
+        List<FollowMemberResponse> followers = memberService.getFollowers(me.getLoginId());
+
+        // then
+        verify(memberRepository).findByLoginId(me.getLoginId());
+        verify(followRepository).findAllByToMember(me);
+        assertThat(followers).hasSize(size);
+        for (int i = 0; i < size; i++) {
+            assertThat(followers.get(i).loginId()).isEqualTo(followerList.get(i).getFromMember().getLoginId());
+            assertThat(followers.get(i).nickname()).isEqualTo(followerList.get(i).getFromMember().getNickname());
+        }
+    }
+
+    @Test
     @DisplayName("팔로잉 목록 조회 실패: 본인 조회 실패")
     void getFollowings_Failure_CannotFindMe() {
         // given
@@ -392,6 +499,31 @@ class MemberServiceTest {
         verify(memberRepository).findByLoginId(me.getLoginId());
         verify(followRepository, never()).findAllByFromMember(me);
     }
+
+    @Test
+    @DisplayName("대규모 팔로잉 목록 조회")
+    void getFollowings_LargeList() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        when(memberRepository.findByLoginId(me.getLoginId())).thenReturn(Optional.of(me));
+
+        int size = 10000;
+        List<Follow> followingList = TestDataFactory.createFollowingList(me, size);
+
+        when(followRepository.findAllByFromMember(me)).thenReturn(followingList);
+
+        // when
+        List<FollowMemberResponse> followings = memberService.getFollowings(me.getLoginId());
+
+        // then
+        verify(memberRepository).findByLoginId(me.getLoginId());
+        verify(followRepository).findAllByFromMember(me);
+        assertThat(followings).hasSize(size);
+        for (int i = 0; i < size; i++) {
+            assertThat(followings.get(i).loginId()).isEqualTo(followingList.get(i).getToMember().getLoginId());
+            assertThat(followings.get(i).nickname()).isEqualTo(followingList.get(i).getToMember().getNickname());
+        }
+    }
 }
 
 class TestDataFactory {
@@ -402,5 +534,22 @@ class TestDataFactory {
 
     static Member createMember(String loginId, String email, String password, String nickname) {
         return new Member(loginId, email, password, nickname, null);
+    }
+
+    static List<Follow> createFollowerList(Member toMember, int size) {
+        return IntStream.range(0, size)
+                .mapToObj(i -> new Follow(
+                        createMember("followerId" + i, "followerEmail" + i + "@example.com", "encodedPassword", "nickname" + i),
+                        toMember))
+                .collect(Collectors.toList());
+    }
+
+    static List<Follow> createFollowingList(Member fromMember, int size) {
+        return IntStream.range(0, size)
+                .mapToObj(i -> new Follow(
+                        fromMember,
+                        createMember("followingId" + i, "followingEmail" + i + "@example.com", "encodedPassword", "nickname" + i)
+                        ))
+                .collect(Collectors.toList());
     }
 }
