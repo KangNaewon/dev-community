@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -32,4 +33,20 @@ public class Follow {
         this.fromMember = fromMember;
         this.toMember = toMember;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Follow follow = (Follow) o;
+        return Objects.equals(fromMember, follow.fromMember) &&
+                Objects.equals(toMember, follow.toMember);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fromMember, toMember);
+    }
+
 }
