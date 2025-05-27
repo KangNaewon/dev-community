@@ -6,6 +6,7 @@ import com.letsgo.devcommunity.domain.member.entity.Follow;
 import com.letsgo.devcommunity.domain.member.entity.Member;
 import com.letsgo.devcommunity.domain.member.repository.FollowRepository;
 import com.letsgo.devcommunity.domain.member.repository.MemberRepository;
+import com.letsgo.devcommunity.domain.post.repository.PostLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final FollowRepository followRepository;
+//    private final PostLikeRepository postLikeRepository;
 
     @Transactional
     public MemberProfileResponse getProfile(String loginId) {
@@ -25,6 +27,7 @@ public class MemberService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         int followerCount = followRepository.countByToMember(member);
         int followingCount = followRepository.countByFromMember(member);
+//        int receivedLikeCount = postLikeRepository.calculateTotalLikesByUserId(member.getId());
         int receivedLikeCount = 0;
 
         return new MemberProfileResponse(
@@ -66,7 +69,7 @@ public class MemberService {
     @Transactional(readOnly = true)
     public List<FollowMemberResponse> getFollowers(String loginId) {
         Member member = memberRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 회원을 찾을 수 없습니다."));
 
         return followRepository.findAllByToMember(member).stream()
                 .map(follow -> FollowMemberResponse.from(follow.getFromMember()))
@@ -76,7 +79,7 @@ public class MemberService {
     @Transactional(readOnly = true)
     public List<FollowMemberResponse> getFollowings(String loginId) {
         Member member = memberRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("로그인한 회원을 찾을 수 없습니다."));
 
         return followRepository.findAllByFromMember(member).stream()
                 .map(follow -> FollowMemberResponse.from(follow.getToMember()))
