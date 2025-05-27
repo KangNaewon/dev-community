@@ -40,13 +40,13 @@ public class Follow {
         if (o == null || getClass() != o.getClass()) return false;
 
         Follow follow = (Follow) o;
-        return Objects.equals(fromMember, follow.fromMember) &&
-                Objects.equals(toMember, follow.toMember);
+        return Objects.equals(fromMember.getId(), follow.fromMember.getId()) &&
+                Objects.equals(toMember.getId(), follow.toMember.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fromMember, toMember);
+        return Objects.hash(fromMember.getId(), toMember.getId());
     }
 
 }
