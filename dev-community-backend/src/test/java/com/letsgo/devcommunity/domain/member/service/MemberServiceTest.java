@@ -1,5 +1,6 @@
 package com.letsgo.devcommunity.domain.member.service;
 
+import com.letsgo.devcommunity.domain.member.dto.FollowMemberResponse;
 import com.letsgo.devcommunity.domain.member.entity.Follow;
 import com.letsgo.devcommunity.domain.member.entity.Member;
 import com.letsgo.devcommunity.domain.member.repository.FollowRepository;
@@ -13,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -281,12 +283,115 @@ class MemberServiceTest {
         verify(followRepository, never()).delete(any(Follow.class));
     }
 
-    void getFollowers_Success() {}
-    void getFollowers_Failure_CannotFindMe() {}
+    @Test
+    @DisplayName("팔로워 목록 조회 성공")
+    void getFollowers_Success() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        Member follower1 = TestDataFactory.createMember(
+                "followerId1",
+                "followerEmail1@example.com",
+                "encodedPassword1",
+                "follower1Nickname"
+        );
+        Member follower2 = TestDataFactory.createMember(
+                "followerId2",
+                "followerEmail2@example.com",
+                "encodedPassword2",
+                "follower2Nickname"
+        );
+        Follow follow1 = new Follow(follower1, me);
+        Follow follow2 = new Follow(follower2, me);
 
+        when(memberRepository.findByLoginId(me.getLoginId())).thenReturn(Optional.of(me));
+        when(followRepository.findAllByToMember(me)).thenReturn(List.of(follow1, follow2));
 
-    void getFollowings_Success() {}
-    void getFollowings_Failure_CannotFindMe() {}
+        // when
+        List<FollowMemberResponse> followers = memberService.getFollowers(me.getLoginId());
+
+        // then
+        verify(memberRepository).findByLoginId(me.getLoginId());
+        verify(followRepository).findAllByToMember(me);
+        assertThat(followers).hasSize(2);
+        assertThat(followers.get(0).loginId()).isEqualTo(follower1.getLoginId());
+        assertThat(followers.get(1).loginId()).isEqualTo(follower2.getLoginId());
+        assertThat(followers.get(0).nickname()).isEqualTo(follower1.getNickname());
+        assertThat(followers.get(1).nickname()).isEqualTo(follower2.getNickname());
+    }
+
+    @Test
+    @DisplayName("팔로우 목록 조회 실패: 본인 조회 실패")
+    void getFollowers_Failure_CannotFindMe() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        when(memberRepository.findByLoginId(me.getLoginId())).thenReturn(Optional.empty());
+
+        // when
+        IllegalArgumentException illegalArgumentException = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.getFollowers(me.getLoginId())
+        );
+
+        // then
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_ME.getMessage());
+        verify(memberRepository).findByLoginId(me.getLoginId());
+        verify(followRepository, never()).findAllByToMember(me);
+    }
+
+    @Test
+    @DisplayName("팔로잉 목록 조회 성공")
+    void getFollowings_Success() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        Member following1 = TestDataFactory.createMember(
+                "followingId1",
+                "followingEmail1@example.com",
+                "encodedPassword1",
+                "following1Nickname"
+        );
+        Member following2 = TestDataFactory.createMember(
+                "followingId2",
+                "followingEmail2@example.com",
+                "encodedPassword2",
+                "following2Nickname"
+        );
+        Follow follow1 = new Follow(me, following1);
+        Follow follow2 = new Follow(me, following2);
+
+        when(memberRepository.findByLoginId(me.getLoginId())).thenReturn(Optional.of(me));
+        when(followRepository.findAllByFromMember(me)).thenReturn(List.of(follow1, follow2));
+
+        // when
+        List<FollowMemberResponse> followings = memberService.getFollowings(me.getLoginId());
+
+        // then
+        verify(memberRepository).findByLoginId(me.getLoginId());
+        verify(followRepository).findAllByFromMember(me);
+        assertThat(followings).hasSize(2);
+        assertThat(followings.get(0).loginId()).isEqualTo(following1.getLoginId());
+        assertThat(followings.get(1).loginId()).isEqualTo(following2.getLoginId());
+        assertThat(followings.get(0).nickname()).isEqualTo(following1.getNickname());
+        assertThat(followings.get(1).nickname()).isEqualTo(following2.getNickname());
+    }
+
+    @Test
+    @DisplayName("팔로잉 목록 조회 실패: 본인 조회 실패")
+    void getFollowings_Failure_CannotFindMe() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        when(memberRepository.findByLoginId(me.getLoginId())).thenReturn(Optional.empty());
+
+        // when
+        IllegalArgumentException illegalArgumentException = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.getFollowings(me.getLoginId())
+        );
+
+        // then
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_ME.getMessage());
+        verify(memberRepository).findByLoginId(me.getLoginId());
+        verify(followRepository, never()).findAllByFromMember(me);
+    }
 }
 
 class TestDataFactory {
