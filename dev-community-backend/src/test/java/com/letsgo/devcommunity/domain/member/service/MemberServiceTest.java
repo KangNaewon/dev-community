@@ -171,13 +171,119 @@ class MemberServiceTest {
         verify(followRepository, never()).save(any(Follow.class));
     }
 
-    void unfollow_Success() {}
-    void unfollow_Failure_CannotFindMe() {}
-    void unfollow_Failure_CannotFindUnfollowTarget() {}
-    void unfollow_Failure_CannotFindFollowRelationship() {}
+    @Test
+    @DisplayName("언팔로우 성공")
+    void unfollow_Success() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        Member unfollowTarget = TestDataFactory.createMember(
+                "targetLoginId",
+                "targetEmail@example.com",
+                "encodedPassword",
+                "targetNickname"
+        );
+        when(memberRepository.findById(me.getId())).thenReturn(Optional.of(me));
+        when(memberRepository.findByLoginId(unfollowTarget.getLoginId())).thenReturn(Optional.of(unfollowTarget));
+        Follow followRelationship = new Follow(me, unfollowTarget);
+        when(followRepository.findByFromMemberAndToMember(me, unfollowTarget)).thenReturn(Optional.of(followRelationship));
+
+        // when
+        assertDoesNotThrow(() -> memberService.unfollow(unfollowTarget.getLoginId(), me.getId()));
+
+        // then
+        verify(memberRepository).findById(me.getId());
+        verify(memberRepository).findByLoginId(unfollowTarget.getLoginId());
+        verify(followRepository).findByFromMemberAndToMember(me, unfollowTarget);
+        verify(followRepository).delete(followRelationship);
+    }
+
+    @Test
+    @DisplayName("언팔로우 실패: 본인 조회 실패")
+    void unfollow_Failure_CannotFindMe() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        Member unfollowTarget = TestDataFactory.createMember(
+                "targetLoginId",
+                "targetEmail@example.com",
+                "encodedPassword",
+                "targetNickname"
+        );
+        when(memberRepository.findById(me.getId())).thenReturn(Optional.empty());
+
+        // when
+        IllegalArgumentException illegalArgumentException = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.unfollow(unfollowTarget.getLoginId(), me.getId())
+        );
+
+        // then
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_ME.getMessage());
+        verify(memberRepository).findById(me.getId());
+        verify(memberRepository, never()).findByLoginId(unfollowTarget.getLoginId());
+        verify(followRepository, never()).findByFromMemberAndToMember(me, unfollowTarget);
+        verify(followRepository, never()).delete(any(Follow.class));
+    }
+
+    @Test
+    @DisplayName("언팔로우 실패: 언팔로우 대상 조회 실패")
+    void unfollow_Failure_CannotFindUnfollowTarget() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        Member unfollowTarget = TestDataFactory.createMember(
+                "targetLoginId",
+                "targetEmail@example.com",
+                "encodedPassword",
+                "targetNickname"
+        );
+        when(memberRepository.findById(me.getId())).thenReturn(Optional.of(me));
+        when(memberRepository.findByLoginId(unfollowTarget.getLoginId())).thenReturn(Optional.empty());
+
+        // when
+        IllegalArgumentException illegalArgumentException = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.unfollow(unfollowTarget.getLoginId(), me.getId())
+        );
+
+        // then
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_UNFOLLOW_TARGET.getMessage());
+        verify(memberRepository).findById(me.getId());
+        verify(memberRepository).findByLoginId(unfollowTarget.getLoginId());
+        verify(followRepository, never()).findByFromMemberAndToMember(me, unfollowTarget);
+        verify(followRepository, never()).delete(any(Follow.class));
+    }
+
+    @Test
+    @DisplayName("언팔로우 실패: 팔로우 관계 없음")
+    void unfollow_Failure_CannotFindFollowRelationship() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        Member unfollowTarget = TestDataFactory.createMember(
+                "targetLoginId",
+                "targetEmail@example.com",
+                "encodedPassword",
+                "targetNickname"
+        );
+        when(memberRepository.findById(me.getId())).thenReturn(Optional.of(me));
+        when(memberRepository.findByLoginId(unfollowTarget.getLoginId())).thenReturn(Optional.of(unfollowTarget));
+        when(followRepository.findByFromMemberAndToMember(me, unfollowTarget)).thenReturn(Optional.empty());
+
+        // when
+        IllegalStateException illegalStateException = assertThrows(
+                IllegalStateException.class,
+                () -> memberService.unfollow(unfollowTarget.getLoginId(), me.getId())
+        );
+
+        // then
+        assertThat(illegalStateException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_FOLLOW_RELATIONSHIP.getMessage());
+        verify(memberRepository).findById(me.getId());
+        verify(memberRepository).findByLoginId(unfollowTarget.getLoginId());
+        verify(followRepository).findByFromMemberAndToMember(me, unfollowTarget);
+        verify(followRepository, never()).delete(any(Follow.class));
+    }
 
     void getFollowers_Success() {}
     void getFollowers_Failure_CannotFindMe() {}
+
 
     void getFollowings_Success() {}
     void getFollowings_Failure_CannotFindMe() {}
