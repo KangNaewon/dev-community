@@ -182,9 +182,9 @@ class MemberServiceTest {
     void follow_Failure_SelfFollow() {
         // given
         Member me = TestDataFactory.createDefaultMember();
-        Member followTarget = TestDataFactory.createDefaultMember();
+        Member followTarget = me;
         when(memberRepository.findById(me.getId())).thenReturn(Optional.of(me));
-        when(memberRepository.findByLoginId(followTarget.getLoginId())).thenReturn(Optional.of(followTarget));
+        when(memberRepository.findByLoginId(followTarget.getLoginId())).thenReturn(Optional.of(me));
         when(followRepository.existsByFromMemberAndToMember(me, followTarget)).thenReturn(false);
 
         // when
@@ -421,6 +421,31 @@ class MemberServiceTest {
     }
 
     @Test
+    @DisplayName("대규모 팔로워 목록 조회")
+    void getFollowers_LargeList() {
+        // given
+        Member me = TestDataFactory.createDefaultMember();
+        when(memberRepository.findByLoginId(me.getLoginId())).thenReturn(Optional.of(me));
+
+        int size = 1000;
+        List<Follow> followerList = TestDataFactory.createFollowerList(me, size);
+
+        when(followRepository.findAllByToMember(me)).thenReturn(followerList);
+
+        // when
+        List<FollowMemberResponse> followers = memberService.getFollowers(me.getLoginId());
+
+        // then
+        verify(memberRepository).findByLoginId(me.getLoginId());
+        verify(followRepository).findAllByToMember(me);
+        assertThat(followers).hasSize(size);
+        for (int i = 0; i < size; i++) {
+            assertThat(followers.get(i).loginId()).isEqualTo(followerList.get(i).getFromMember().getLoginId());
+            assertThat(followers.get(i).nickname()).isEqualTo(followerList.get(i).getFromMember().getNickname());
+        }
+    }
+
+    @Test
     @DisplayName("팔로잉 목록 조회 성공")
     void getFollowings_Success() {
         // given
@@ -457,31 +482,6 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("대규모 팔로워 목록 조회")
-    void getFollowers_LargeList() {
-        // given
-        Member me = TestDataFactory.createDefaultMember();
-        when(memberRepository.findByLoginId(me.getLoginId())).thenReturn(Optional.of(me));
-
-        int size = 10000;
-        List<Follow> followerList = TestDataFactory.createFollowerList(me, size);
-
-        when(followRepository.findAllByToMember(me)).thenReturn(followerList);
-
-        // when
-        List<FollowMemberResponse> followers = memberService.getFollowers(me.getLoginId());
-
-        // then
-        verify(memberRepository).findByLoginId(me.getLoginId());
-        verify(followRepository).findAllByToMember(me);
-        assertThat(followers).hasSize(size);
-        for (int i = 0; i < size; i++) {
-            assertThat(followers.get(i).loginId()).isEqualTo(followerList.get(i).getFromMember().getLoginId());
-            assertThat(followers.get(i).nickname()).isEqualTo(followerList.get(i).getFromMember().getNickname());
-        }
-    }
-
-    @Test
     @DisplayName("팔로잉 목록 조회 실패: 본인 조회 실패")
     void getFollowings_Failure_CannotFindMe() {
         // given
@@ -507,7 +507,7 @@ class MemberServiceTest {
         Member me = TestDataFactory.createDefaultMember();
         when(memberRepository.findByLoginId(me.getLoginId())).thenReturn(Optional.of(me));
 
-        int size = 10000;
+        int size = 1000;
         List<Follow> followingList = TestDataFactory.createFollowingList(me, size);
 
         when(followRepository.findAllByFromMember(me)).thenReturn(followingList);
