@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.letsgo.devcommunity.domain.member.constants.MemberErrorMessages.*;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -24,7 +26,7 @@ public class MemberService {
     @Transactional
     public MemberProfileResponse getProfile(String loginId) {
         Member member = memberRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new IllegalArgumentException(NOT_FOUND_MEMBER));
         int followerCount = followRepository.countByToMember(member);
         int followingCount = followRepository.countByFromMember(member);
 //        int receivedLikeCount = postLikeRepository.calculateTotalLikesByUserId(member.getId());
@@ -42,16 +44,16 @@ public class MemberService {
     @Transactional
     public void follow(String targetLoginId, Long currentMemberId) {
         if(targetLoginId == null || targetLoginId.isEmpty()){
-            throw new IllegalArgumentException("팔로우 대상 ID는 필수입니다.");
+            throw new IllegalArgumentException(TARGET_ID_NULL_OR_EMPTY);
         }
 
         Member from = memberRepository.findById(currentMemberId)
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(CANNOT_FIND_ME));
         Member to = memberRepository.findByLoginId(targetLoginId)
-                .orElseThrow(() -> new IllegalArgumentException("팔로우 대상 회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(CANNOT_FIND_FOLLOW_TARGET));
 
         if (followRepository.existsByFromMemberAndToMember(from, to)) {
-            throw new IllegalStateException("이미 팔로우한 사용자입니다.");
+            throw new IllegalStateException(ALREADY_FOLLOWING);
         }
 
         followRepository.save(from.follow(to));
@@ -60,24 +62,24 @@ public class MemberService {
     @Transactional
     public void unfollow(String targetLoginId, Long currentMemberId) {
         if(targetLoginId == null || targetLoginId.isEmpty()){
-            throw new IllegalArgumentException("팔로우 대상 ID는 필수입니다.");
+            throw new IllegalArgumentException(TARGET_ID_NULL_OR_EMPTY);
         }
 
         Member from = memberRepository.findById(currentMemberId)
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(CANNOT_FIND_ME));
         Member to = memberRepository.findByLoginId(targetLoginId)
-                .orElseThrow(() -> new IllegalArgumentException("언팔로우 대상 회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(CANNOT_FIND_UNFOLLOW_TARGET));
 
         followRepository.findByFromMemberAndToMember(from, to)
                 .ifPresentOrElse(followRepository::delete, () -> {
-                    throw new IllegalStateException("팔로우 관계가 존재하지 않습니다.");
+                    throw new IllegalStateException(CANNOT_FIND_FOLLOW_RELATIONSHIP);
                 });
     }
 
     @Transactional(readOnly = true)
     public List<FollowMemberResponse> getFollowers(String loginId) {
         Member member = memberRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(CANNOT_FIND_ME));
 
         return followRepository.findAllByToMember(member).stream()
                 .map(follow -> FollowMemberResponse.from(follow.getFromMember()))
@@ -87,7 +89,7 @@ public class MemberService {
     @Transactional(readOnly = true)
     public List<FollowMemberResponse> getFollowings(String loginId) {
         Member member = memberRepository.findByLoginId(loginId)
-                .orElseThrow(() -> new IllegalArgumentException("로그인한 회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(CANNOT_FIND_ME));
 
         return followRepository.findAllByFromMember(member).stream()
                 .map(follow -> FollowMemberResponse.from(follow.getToMember()))

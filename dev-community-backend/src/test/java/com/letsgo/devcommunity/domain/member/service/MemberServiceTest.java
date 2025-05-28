@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.letsgo.devcommunity.domain.member.constants.MemberErrorMessages.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -34,27 +35,6 @@ class MemberServiceTest {
 
     @InjectMocks
     private MemberService memberService;
-
-    enum ErrorMessage {
-        NOT_FOUND_MEMBER("존재하지 않는 사용자입니다."),
-        CANNOT_FIND_ME("로그인한 회원을 찾을 수 없습니다."),
-        CANNOT_FIND_FOLLOW_TARGET("팔로우 대상 회원을 찾을 수 없습니다."),
-        CANNOT_FIND_UNFOLLOW_TARGET("언팔로우 대상 회원을 찾을 수 없습니다."),
-        ALREADY_FOLLOWING("이미 팔로우한 사용자입니다."),
-        CANNOT_FIND_FOLLOW_RELATIONSHIP("팔로우 관계가 존재하지 않습니다."),
-        CANNOT_FOLLOW_MYSELF("자기 자신을 팔로우할 수 없습니다."),
-        TARGET_ID_NULL_OR_EMPTY("팔로우 대상 ID는 필수입니다.");
-
-        private final String message;
-
-        ErrorMessage(String message) {
-            this.message = message;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-    }
 
 //    @Test
 //    @DisplayName("프로필 조회 성공")
@@ -113,7 +93,7 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_ME.getMessage());
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(CANNOT_FIND_ME);
         verify(memberRepository).findById(me.getId());
         verify(memberRepository, never()).findByLoginId(followTarget.getLoginId());
         verify(followRepository, never()).existsByFromMemberAndToMember(me, followTarget);
@@ -141,7 +121,7 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_FOLLOW_TARGET.getMessage());
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(CANNOT_FIND_FOLLOW_TARGET);
         verify(memberRepository).findById(me.getId());
         verify(memberRepository).findByLoginId(followTarget.getLoginId());
         verify(followRepository, never()).existsByFromMemberAndToMember(me, followTarget);
@@ -170,7 +150,7 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(illegalStateException.getMessage()).isEqualTo(ErrorMessage.ALREADY_FOLLOWING.getMessage());
+        assertThat(illegalStateException.getMessage()).isEqualTo(ALREADY_FOLLOWING);
         verify(memberRepository).findById(me.getId());
         verify(memberRepository).findByLoginId(followTarget.getLoginId());
         verify(followRepository).existsByFromMemberAndToMember(me, followTarget);
@@ -194,7 +174,7 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FOLLOW_MYSELF.getMessage());
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(CANNOT_FOLLOW_MYSELF);
         verify(memberRepository).findById(me.getId());
         verify(memberRepository).findByLoginId(followTarget.getLoginId());
         verify(followRepository).existsByFromMemberAndToMember(me, followTarget);
@@ -219,8 +199,8 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(nullTargetIdException.getMessage()).isEqualTo(ErrorMessage.TARGET_ID_NULL_OR_EMPTY.getMessage());
-        assertThat(emptyTargetIdException.getMessage()).isEqualTo(ErrorMessage.TARGET_ID_NULL_OR_EMPTY.getMessage());
+        assertThat(nullTargetIdException.getMessage()).isEqualTo(TARGET_ID_NULL_OR_EMPTY);
+        assertThat(emptyTargetIdException.getMessage()).isEqualTo(TARGET_ID_NULL_OR_EMPTY);
 
         verify(memberRepository, never()).findById(anyLong());
         verify(memberRepository, never()).findByLoginId(anyString());
@@ -274,7 +254,7 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_ME.getMessage());
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(CANNOT_FIND_ME);
         verify(memberRepository).findById(me.getId());
         verify(memberRepository, never()).findByLoginId(unfollowTarget.getLoginId());
         verify(followRepository, never()).findByFromMemberAndToMember(me, unfollowTarget);
@@ -302,7 +282,7 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_UNFOLLOW_TARGET.getMessage());
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(CANNOT_FIND_UNFOLLOW_TARGET);
         verify(memberRepository).findById(me.getId());
         verify(memberRepository).findByLoginId(unfollowTarget.getLoginId());
         verify(followRepository, never()).findByFromMemberAndToMember(me, unfollowTarget);
@@ -331,7 +311,7 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(illegalStateException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_FOLLOW_RELATIONSHIP.getMessage());
+        assertThat(illegalStateException.getMessage()).isEqualTo(CANNOT_FIND_FOLLOW_RELATIONSHIP);
         verify(memberRepository).findById(me.getId());
         verify(memberRepository).findByLoginId(unfollowTarget.getLoginId());
         verify(followRepository).findByFromMemberAndToMember(me, unfollowTarget);
@@ -356,8 +336,8 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(nullTargetIdException.getMessage()).isEqualTo(ErrorMessage.TARGET_ID_NULL_OR_EMPTY.getMessage());
-        assertThat(emptyTargetIdException.getMessage()).isEqualTo(ErrorMessage.TARGET_ID_NULL_OR_EMPTY.getMessage());
+        assertThat(nullTargetIdException.getMessage()).isEqualTo(TARGET_ID_NULL_OR_EMPTY);
+        assertThat(emptyTargetIdException.getMessage()).isEqualTo(TARGET_ID_NULL_OR_EMPTY);
 
         verify(memberRepository, never()).findById(anyLong());
         verify(memberRepository, never()).findByLoginId(anyString());
@@ -415,7 +395,7 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_ME.getMessage());
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(CANNOT_FIND_ME);
         verify(memberRepository).findByLoginId(me.getLoginId());
         verify(followRepository, never()).findAllByToMember(me);
     }
@@ -495,7 +475,7 @@ class MemberServiceTest {
         );
 
         // then
-        assertThat(illegalArgumentException.getMessage()).isEqualTo(ErrorMessage.CANNOT_FIND_ME.getMessage());
+        assertThat(illegalArgumentException.getMessage()).isEqualTo(CANNOT_FIND_ME);
         verify(memberRepository).findByLoginId(me.getLoginId());
         verify(followRepository, never()).findAllByFromMember(me);
     }

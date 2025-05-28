@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.Objects;
 
+import static com.letsgo.devcommunity.domain.member.constants.MemberErrorMessages.*;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -42,7 +44,7 @@ public class Member extends BaseEntity {
 
     public Follow follow(Member to) {
         if (this.equals(to)) {
-            throw new IllegalArgumentException("자기 자신을 팔로우할 수 없습니다.");
+            throw new IllegalArgumentException(CANNOT_FOLLOW_MYSELF);
         }
 
         return Follow.builder()
