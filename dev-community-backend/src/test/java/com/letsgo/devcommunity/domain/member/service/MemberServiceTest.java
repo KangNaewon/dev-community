@@ -36,11 +36,7 @@ class MemberServiceTest {
     @InjectMocks
     private MemberService memberService;
 
-//    @Test
-//    @DisplayName("프로필 조회 성공")
-//    void getProfile_Success() {
-//    }
-//    void getProfile_Failure_NotFoundMember() {}
+    // TODO: 프로필 조회 기능 구현 (본인이 받은 총 추천 수 기능) 후 테스트 추가 예정
 
     @Test
     @DisplayName("팔로우 성공")
