@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import static com.letsgo.devcommunity.domain.member.constants.MemberErrorMessages.*;
@@ -13,7 +14,7 @@ import static com.letsgo.devcommunity.domain.member.constants.MemberErrorMessage
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member extends BaseEntity {
+public class Member implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
