@@ -1,10 +1,11 @@
-#React 앱 빌드
+# ----------- 1단계: React 앱 빌드(Stage 1) -----------
 FROM node:20 as builder
 WORKDIR /app
 COPY . .
+RUN cp .env.production .env
 RUN npm install && npm run build
 
-#Nginx 기반 이미지로 정적 파일 서빙
+# ----------- 2단계: Nginx로 정적 파일 서빙(Stage 2) -----------
 FROM nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf

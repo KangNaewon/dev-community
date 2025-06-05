@@ -1,7 +1,6 @@
 package com.letsgo.devcommunity.domain.auth.email;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,6 @@ public class RedisEmailVerificationStore implements EmailVerificationStore {
     public void saveCode(String email, String code, Duration ttl) {
         String key = CODE_PREFIX + email;
         redisTemplate.opsForValue().set(key, code, ttl.toSeconds(), TimeUnit.SECONDS);
-        Object savedCode = redisTemplate.opsForValue().get(key);
     }
 
     @Override
