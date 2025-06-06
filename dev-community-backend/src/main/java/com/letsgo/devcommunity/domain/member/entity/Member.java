@@ -1,6 +1,5 @@
 package com.letsgo.devcommunity.domain.member.entity;
 
-import com.letsgo.devcommunity.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -55,7 +54,7 @@ public class Member implements Serializable {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-        this.profileImageUrl = null;
+        this.profileImageUrl = profileImageUrl;
     }
 
     public Follow follow(Member to) {

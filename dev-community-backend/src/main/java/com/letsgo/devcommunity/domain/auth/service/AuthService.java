@@ -5,10 +5,13 @@ import com.letsgo.devcommunity.domain.auth.dto.SignUpRequest;
 import com.letsgo.devcommunity.domain.auth.email.EmailVerificationStore;
 import com.letsgo.devcommunity.domain.member.entity.Member;
 import com.letsgo.devcommunity.domain.auth.repository.AuthRepository;
+import com.letsgo.devcommunity.global.common.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.letsgo.devcommunity.global.common.FileStorageService.DEFAULT_PROFILE_IMAGE_URL;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +34,7 @@ public class AuthService {
                 request.email(),
                 encodedPassword,
                 request.nickname(),
-                null
+                DEFAULT_PROFILE_IMAGE_URL
         );
 
         authRepository.save(member);
