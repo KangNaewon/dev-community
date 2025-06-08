@@ -20,16 +20,8 @@ public class FileStorageService {
 
     public static final String DEFAULT_PROFILE_IMAGE_URL = "https://devcommunity-file.s3.ap-northeast-2.amazonaws.com/default_profile_image.png";
 
-    public FileStorageService(@Value("${cloud.aws.credentials.access-key}") String accessKey,
-                              @Value("${cloud.aws.credentials.secret-key}") String secretKey,
-                              @Value("${cloud.aws.s3.region}") String region,
-                              @Value("${cloud.aws.s3.bucket}") String bucketName) {
-
-        this.s3Client = S3Client.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
-                .build();
-
+    public FileStorageService(S3Client s3Client, @Value("${cloud.aws.s3.bucket}") String bucketName) {
+        this.s3Client = s3Client;
         this.bucketName = bucketName;
     }
 
@@ -44,8 +36,8 @@ public class FileStorageService {
         return s3Client.utilities().getUrl(builder -> builder.bucket(bucketName).key(fileName)).toExternalForm();
     }
 
-    public void deleteFile(String fileUrl) {
-        s3Client.deleteObject(builder -> builder.bucket(bucketName).key(fileUrl));
+    public void deleteFile(String fileKey) throws IOException {
+        s3Client.deleteObject(builder -> builder.bucket(bucketName).key(fileKey));
     }
 
 }
