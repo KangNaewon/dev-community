@@ -62,6 +62,8 @@ class PostServiceTest {
         UpdateDto updateDto = new UpdateDto();
         updateDto.setTitle("Test Title");
         updateDto.setContent("Test Content");
+        updateDto.setTags(List.of());
+
 
         Member mockMember = new Member("1", "test@test.com", "pw123", "nickname123", "None");
         mockMember.setId(123L);
