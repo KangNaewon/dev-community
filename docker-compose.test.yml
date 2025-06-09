@@ -16,6 +16,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/dev_community?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 1234
+      MAIL_HOST: mail.sogang.ac.kr
+      MAIL_PORT: 465
+      MAIL_USERNAME: 
+      MAIL_PASSWORD: 
     ports:
       - "8081:8081"
     depends_on:
@@ -42,9 +46,12 @@ services:
       - ./dev-community-frontend:/e2e
     depends_on:
       - frontend
-    command: ["npx", "cypress", "run", "--config", "baseUrl=http://frontend"]
+    environment:
+      CYPRESS_BASE_URL: http://frontend
+    command: ["cypress", "run"]
     networks:
       - test-network
+
 
 networks:
   test-network:
