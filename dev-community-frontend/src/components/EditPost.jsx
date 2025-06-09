@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Editor } from '@toast-ui/react-editor';
+import '@toast-ui/editor/dist/toastui-editor.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './EditPostStyles.css';
@@ -8,8 +10,27 @@ const EditPost = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState('');      // 태그 입력 상태 추가
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const editorRef = useRef(null);
+
+  // ReactQuill toolbar 설정  
+  const quillModules = {  
+    toolbar: [  
+      [{ header: [1, 2, false] }],  
+      ['bold', 'italic', 'underline', 'strike'],  
+      ['blockquote', 'code-block'],  
+      [{ list: 'ordered' }, { list: 'bullet' }],  
+      ['link', 'image'],  
+      ['clean']  
+    ]  
+  };  
+  const quillFormats = [  
+    'header', 'bold', 'italic', 'underline', 'strike',  
+    'blockquote', 'code-block', 'list', 'bullet',  
+    'link', 'image'  
+  ];  
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -17,6 +38,7 @@ const EditPost = () => {
         const response = await axios.get(`/post/${postId}`);
         setTitle(response.data.title);
         setContent(response.data.content);
+        setTags((response.data.tags || []).join(', '));
         setLoading(false);
       } catch (error) {
         console.error('게시글 정보 로딩 실패:', error);
@@ -37,10 +59,17 @@ const EditPost = () => {
     }
 
     try {
-      // PUT 요청으로 게시글 수정
+      // 콤마로 구분된 문자열을 배열로 변환
+      const tagList = tags
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+
+      // PUT 요청으로 게시글 수정 (tags 포함)
       const response = await axios.put(`/post/${postId}`, {
         title,
-        content
+        content,
+        tags: tagList
       });
       
       // 수정 성공 시 상세 페이지로 이동
@@ -102,13 +131,28 @@ const EditPost = () => {
           </div>
           <div className="form-group">
             <label htmlFor="content">내용</label>
-            <textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="내용을 입력하세요"
-              rows="10"
-              required
+            <Editor
+              ref={editorRef}
+              initialValue={content}
+              previewStyle="vertical"
+              height="300px"
+              initialEditType="wysiwyg"
+              hideModeSwitch
+              useCommandShortcut
+              onChange={() => {
+                const md = editorRef.current.getInstance().getMarkdown();
+                setContent(md);
+              }}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="tags">태그</label>
+            <input
+              type="text"
+              id="tags"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="콤마(,)로 구분해 입력하세요"
             />
           </div>
           <div className="form-actions">

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { Editor } from '@toast-ui/react-editor';
+import '@toast-ui/editor/dist/toastui-editor.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './CreatePostStyles.css';
@@ -7,8 +9,27 @@ const CreatePost = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tags, setTags] = useState(''); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const editorRef = useRef(null);
+
+  // ReactQuill toolbar 설정  
+  const quillModules = {  
+    toolbar: [  
+      [{ header: [1, 2, false] }],  
+      ['bold', 'italic', 'underline', 'strike'],  
+      ['blockquote', 'code-block'],  
+      [{ list: 'ordered' }, { list: 'bullet' }],  
+      ['link', 'image'],  
+      ['clean']  
+    ]  
+  };  
+  const quillFormats = [  
+    'header', 'bold', 'italic', 'underline', 'strike',  
+    'blockquote', 'code-block', 'list', 'bullet',  
+    'link', 'image'  
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,10 +43,17 @@ const CreatePost = () => {
       setLoading(true);
       setError(null);
       
-      // 게시글 작성 API 호출
+      // 콤마로 구분된 문자열을 배열로 변환 (양 끝 공백 제거, 빈 값 제거)
+      const tagList = tags
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+
+      // 게시글 작성 API 호출 (tags 포함)
       const response = await axios.post('/post', {
         title,
-        content
+        content,
+        tags: tagList
       });
       
       // 작성 성공 시 해당 게시글 상세 페이지로 이동
@@ -83,13 +111,29 @@ const CreatePost = () => {
           
           <div className="form-group">
             <label htmlFor="content">내용</label>
-            <textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="내용을 입력하세요"
-              rows="10"
-              required
+            <Editor
+              ref={editorRef}
+              initialValue={content}
+              previewStyle="vertical"
+              height="300px"
+              initialEditType="wysiwyg"
+              hideModeSwitch
+              useCommandShortcut
+              onChange={() => {
+                const md = editorRef.current.getInstance().getMarkdown();
+                setContent(md);
+              }}
+            />
+          </div>
+          {/* 태그 입력 필드 추가 */}
+          <div className="form-group">
+            <label htmlFor="tags">태그</label>
+            <input
+              type="text"
+              id="tags"
+              value={tags}
+              onChange={e => setTags(e.target.value)}
+              placeholder="콤마(,)로 구분해 입력하세요"
             />
           </div>
           
