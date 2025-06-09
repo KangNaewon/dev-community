@@ -146,6 +146,23 @@ components:
         size:
           type: integer
 
+    UpdateDto:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+      required:
+        - title
+        - content
+        - tags
+
+
 paths:
   /auth/signup:
     post:
@@ -571,7 +588,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreatePostRequest'
+              $ref: '#/components/schemas/UpdateDto'
       responses:
         '201':
           description: 게시글 생성 성공
