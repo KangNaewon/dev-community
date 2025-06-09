@@ -508,7 +508,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePostRequest'
+              $ref: '#/components/schemas/UpdateDto'
       responses:
         '200':
           description: 수정 성공
