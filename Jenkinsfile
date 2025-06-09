@@ -11,8 +11,8 @@ pipeline {
     FRONTEND_PORT     = '5002'
     BACKEND_URL       = "52.78.59.185"
     FRONTEND_URL      = "13.124.40.201"
-    MAIL_USERNAME   = 'jesjsjes@sogang.ac.kr'
-    MAIL_PASSWORD   = 'wndrnrwlq1492@'
+    MAIL_USERNAME   = ''
+    MAIL_PASSWORD   = ''
   }
 
   stages {
