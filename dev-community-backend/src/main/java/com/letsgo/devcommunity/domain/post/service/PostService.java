@@ -86,7 +86,18 @@ public class PostService {
                     String nickname = user.map(Member::getNickname)
                             .orElse(null);
                     AuthorDTO authorDTO = new AuthorDTO(post.getUserId(), nickname);
-                    return ContentDto.fromEntity(post, likeCount, commentCount, authorDTO);
+                    // 태그 포함
+                    List<TagPostMap> tagMaps = tagPostMapRepository.findAllByPostId(post.getId());
+                    List<Long> tagIds = tagMaps.stream()
+                            .map(TagPostMap::getTagId)
+                            .collect(Collectors.toList());
+                    List<Tag> tags = tagRepository.findAllById(tagIds);
+                    List<String> tagNames = tags.stream()
+                            .map(Tag::getTagName)
+                            .collect(Collectors.toList());
+
+                    //ContentDto 생성 시 tags 포함
+                    return ContentDto.fromEntity(post, likeCount, commentCount, authorDTO, tagNames);
                 })
                 .collect(Collectors.toList());
 
@@ -104,6 +115,45 @@ public class PostService {
         post.setTitle(updateDto.getTitle());
         post.setContent(updateDto.getContent());
         postRepository.save(post);
+
+        // 기존에 있던 태그
+        List<TagPostMap> originals = tagPostMapRepository.findAllByPostId(id);
+        List<Long> tagIds = originals.stream()
+                .map(TagPostMap::getTagId)
+                .collect(Collectors.toList());
+        List<Tag> tags = tagRepository.findAllById(tagIds);
+        List<String> originalTags = tags.stream()
+                .map(Tag::getTagName)
+                .toList();
+
+        // 새로 업데이트된 태그
+        List<String> newTags = updateDto.getTags();
+
+        //삭제된 태그 처리
+        List<String> tagsToDelete = new ArrayList<>(originalTags);
+        tagsToDelete.removeAll(newTags);  // 기존에는 있었는데 now 없는 것
+
+        for (String tagName : tagsToDelete) {
+            Optional<Tag> tagOpt = tagRepository.findByTagName(tagName);
+            tagOpt.ifPresent(tag -> {
+                Optional<TagPostMap> tpm = tagPostMapRepository.findByTagIdAndPostId(tag.getTagId(), id);
+                tpm.ifPresent(tagPostMapRepository::delete);  // TagPostMap에서 삭제
+            });
+        }
+
+        //기존에 없던 새로 추가할 태그 처리
+        for (String tagName : newTags) {
+            // Tag 테이블에 없으면 생성
+            Tag tag = tagRepository.findByTagName(tagName)
+                    .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+
+            // TagPostMap에 연결 없으면 추가
+            Optional<TagPostMap> tpm = tagPostMapRepository.findByTagIdAndPostId(tag.getTagId(), id);
+            if (tpm.isEmpty()) {
+                tagPostMapRepository.save(new TagPostMap(tag.getTagId(), id));
+            }
+        }
+
         return new UpdateResponseDto(post.getId(), post.getUpdatedAt());
     }
 
@@ -193,7 +243,13 @@ public class PostService {
         Long loginMemberId = loginMember.getId();
         Optional<PostLike> postLike = postLikeRepository.findByPostIdAndUserId(postId, loginMemberId);
         Boolean isLiked = postLike.isPresent();
-        return new PostDto(post.get(), authorDTO, likeCount, isLiked, commentDtos);
+        //태그 추가
+        List<TagPostMap> tagMaps = tagPostMapRepository.findAllByPostId(postId);
+        List<Long> tagIds = tagMaps.stream().map(TagPostMap::getTagId).collect(Collectors.toList());
+        List<Tag> tags = tagRepository.findAllById(tagIds);
+        List<String> tagNames = tags.stream().map(Tag::getTagName).toList();
+
+        return new PostDto(post.get(), authorDTO, likeCount, isLiked, commentDtos, tagNames);
     }
 
     public PostListDto search(String query, Pageable pageable) {
@@ -206,7 +262,18 @@ public class PostService {
                     String nickname = user.map(Member::getNickname)
                             .orElse(null);
                     AuthorDTO authorDTO = new AuthorDTO(post.getUserId(), nickname);
-                    return ContentDto.fromEntity(post, likeCount, commentCount, authorDTO);
+                    // 태그 포함
+                    List<TagPostMap> tagMaps = tagPostMapRepository.findAllByPostId(post.getId());
+                    List<Long> tagIds = tagMaps.stream()
+                            .map(TagPostMap::getTagId)
+                            .collect(Collectors.toList());
+                    List<Tag> tags = tagRepository.findAllById(tagIds);
+                    List<String> tagNames = tags.stream()
+                            .map(Tag::getTagName)
+                            .collect(Collectors.toList());
+
+                    //ContentDto 생성 시 tags 포함
+                    return ContentDto.fromEntity(post, likeCount, commentCount, authorDTO, tagNames);
                 })
                 .collect(Collectors.toList());
 
@@ -246,8 +313,18 @@ public class PostService {
                     String nickname = user.map(Member::getNickname)
                             .orElse(null);
                     AuthorDTO authorDTO = new AuthorDTO(post.getUserId(), nickname);
+                    // 태그 포함
+                    List<TagPostMap> tagMaps = tagPostMapRepository.findAllByPostId(post.getId());
+                    List<Long> tagIds = tagMaps.stream()
+                            .map(TagPostMap::getTagId)
+                            .collect(Collectors.toList());
+                    List<Tag> tags = tagRepository.findAllById(tagIds);
+                    List<String> tagNames = tags.stream()
+                            .map(Tag::getTagName)
+                            .collect(Collectors.toList());
 
-                    return ContentDto.fromEntity(post, likeCount, commentCount, authorDTO);
+                    //ContentDto 생성 시 tags 포함
+                    return ContentDto.fromEntity(post, likeCount, commentCount, authorDTO, tagNames);
                 })
                 .collect(Collectors.toList());
 
