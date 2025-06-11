@@ -230,12 +230,15 @@ class PostServiceTest {
         UpdateDto updateDto = new UpdateDto();
         updateDto.setTitle("수정된 제목");
         updateDto.setContent("수정된 본문");
+        updateDto.setTags(List.of());
+
 
         Post post = new Post();
         post.setId(postId);
         post.setTitle("이전 제목");
         post.setContent("이전 본문");
         post.setUpdatedAt(LocalDateTime.now());
+
 
         // findById(id) → post
         when(postRepository.findById(postId)).thenReturn(Optional.of(post));
