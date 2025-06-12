@@ -64,6 +64,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Comment'
+        tags:
+          type: array
+          items:
+            type: string
+          example:
+            - "java"
+            - "spring"
+            - "swagger"
 
     PostCreateResponse:
       type: object
@@ -145,6 +153,14 @@ components:
         size: # 페이지 당 요소 수
           type: integer
           example: 10
+        tags:
+          type: array
+          items:
+            type: string
+          example:
+            - "java"
+            - "spring"
+            - "swagger"
 
     UpdateDto: # 게시글 생성 및 수정 시 사용
       type: object
