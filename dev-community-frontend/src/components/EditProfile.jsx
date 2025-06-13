@@ -3,44 +3,185 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './EditProfileStyles.css';
 
-// 더미 데이터 정의
-/*const dummyUserInfo = {
-  id: 'user123',
-  nickname: 'DevUser',
-  email: 'user@example.com',
-  profileImageUrl: null
-};*/
-
 const EditProfile = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showProfileOptions, setShowProfileOptions] = useState(false);
+  
+  // 닉네임 변경 상태
   const [newNickname, setNewNickname] = useState('');
-  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [nicknameError, setNicknameError] = useState('');
+  
+  // 비밀번호 변경 상태
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  
   const navigate = useNavigate();
 
   useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      navigate('/login');
+      return;
+    }
+
+    const user = JSON.parse(userStr);
+    
     const fetchUserInfo = async () => {
       try {
-        const response = await axios.get('/user/me');
-        setUserInfo(response.data);
+        const response = await axios.get(`/member/${user.loginId}`);
+        setUserInfo({
+          ...response.data,
+          id: user.loginId
+        });
         setLoading(false);
       } catch (error) {
         console.error('Error fetching user info:', error);
         if (error.response?.status === 401) {
           navigate('/login');
-        } 
-        /*else {
-          // 서버 연결 실패 시 더미 데이터 사용
-          setUserInfo(dummyUserInfo);
+        } else {
+          setError('사용자 정보를 불러오는데 실패했습니다.');
           setLoading(false);
-        }*/
+        }
       }
     };
 
     fetchUserInfo();
   }, [navigate]);
+
+  // 프로필 이미지 변경 핸들러
+  const handleProfileImageClick = () => {
+    setShowProfileOptions(!showProfileOptions);
+  };
+
+  // 프로필 이미지 업로드
+  const handleChangeProfileImage = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          const response = await axios.post('/member/me/profile-image', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          
+          setUserInfo({
+            ...userInfo,
+            profileImageUrl: response.data.profileImageUrl
+          });
+          
+          setShowProfileOptions(false);
+        } catch (error) {
+          console.error('Error uploading profile image:', error);
+          alert('프로필 이미지 업로드에 실패했습니다.');
+        }
+      }
+    };
+    fileInput.click();
+  };
+
+  // 프로필 이미지 삭제
+  const handleRemoveProfileImage = async () => {
+    try {
+      const response = await axios.delete('/member/me/profile-image');
+      
+      setUserInfo({
+        ...userInfo,
+        profileImageUrl: response.data.profileImageUrl
+      });
+      
+      setShowProfileOptions(false);
+    } catch (error) {
+      console.error('Error removing profile image:', error);
+      alert('프로필 이미지 삭제에 실패했습니다.');
+    }
+  };
+
+  // 닉네임 변경 핸들러
+  const handleNicknameSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!newNickname.trim()) {
+      setNicknameError('닉네임을 입력해주세요.');
+      return;
+    }
+    
+    try {
+      const response = await axios.put('/member/me/nickname', { nickname: newNickname });
+      
+      setUserInfo({
+        ...userInfo,
+        nickname: response.data.nickname
+      });
+      
+      setNewNickname('');
+      setNicknameError('');
+      alert('닉네임이 성공적으로 변경되었습니다.');
+    } catch (error) {
+      console.error('Error changing nickname:', error);
+      
+      if (error.response?.status === 409) {
+        setNicknameError('이미 사용 중인 닉네임입니다.');
+      } else {
+        setNicknameError('닉네임 변경에 실패했습니다.');
+      }
+    }
+  };
+
+  // 비밀번호 변경 핸들러
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!currentPassword) {
+      setPasswordError('현재 비밀번호를 입력해주세요.');
+      return;
+    }
+    
+    if (!newPassword) {
+      setPasswordError('새 비밀번호를 입력해주세요.');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError('새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
+      return;
+    }
+    
+    try {
+      await axios.put('/member/me/password', {
+        currentPassword,
+        newPassword
+      });
+      
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordError('');
+      alert('비밀번호가 성공적으로 변경되었습니다.');
+    } catch (error) {
+      console.error('Error changing password:', error);
+      
+      if (error.response?.status === 400) {
+        setPasswordError('현재 비밀번호가 일치하지 않거나 새 비밀번호가 요구사항을 충족하지 않습니다.');
+      } else {
+        setPasswordError('비밀번호 변경에 실패했습니다.');
+      }
+    }
+  };
+
+  const handleGoBack = () => {
+    navigate('/mypage');
+  };
 
   if (loading) {
     return <div className="loading">Loading...</div>;
@@ -50,110 +191,13 @@ const EditProfile = () => {
     return <div className="error">{error}</div>;
   }
 
-  const handleProfileImageClick = () => {
-    setShowProfileOptions(!showProfileOptions);
-  };
-
-  const handleChangeProfileImage = () => {
-    // 로컬 테스트용 이미지 변경 시뮬레이션
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        try {
-          // 서버 요청 대신 로컬에서 이미지 URL 생성
-          const imageUrl = URL.createObjectURL(file);
-          setUserInfo({
-            ...userInfo,
-            profileImageUrl: imageUrl
-          });
-          setShowProfileOptions(false);
-        } catch (error) {
-          console.error('Error handling profile image:', error);
-          alert('Failed to change profile image');
-        }
-      }
-    };
-    fileInput.click();
-  };
-
-  const handleRemoveProfileImage = async () => {
-    try {
-      // 서버 요청 대신 로컬에서 이미지 제거
-      setUserInfo({
-        ...userInfo,
-        profileImageUrl: null
-      });
-      setShowProfileOptions(false);
-    } catch (error) {
-      console.error('Error removing profile image:', error);
-      alert('Failed to remove profile image');
-    }
-  };
-
-  const handleNicknameChange = async (e) => {
-    e.preventDefault();
-    if (!newNickname.trim()) {
-      alert('닉네임을 입력해주세요.');
-      return;
-    }
-
-    try {
-      await axios.patch('/user/nickname', { nickname: newNickname });
-      alert('닉네임이 성공적으로 변경되었습니다.');
-      navigate('/mypage');
-    } catch (error) {
-      if (error.response?.status === 409) {
-        alert('이미 사용 중인 닉네임입니다.');
-      } else {
-        alert('닉네임 변경에 실패했습니다. 다시 시도해주세요.');
-      }
-    }
-  };
-
- 
-
-  const handleChangeNickname = () => {
-    const nickname = prompt('새로운 닉네임을 입력하세요:', userInfo.nickname);
-    if (nickname && nickname !== userInfo.nickname) {
-      updateNickname(nickname);
-    }
-  };
-
-  const updateNickname = async (nickname) => {
-    try {
-      await axios.patch('/user/nickname', { nickname });
-      setUserInfo({
-        ...userInfo,
-        nickname: nickname
-      });
-      alert('닉네임이 성공적으로 변경되었습니다.');
-    } catch (error) {
-      if (error.response?.status === 409) {
-        alert('이미 사용 중인 닉네임입니다.');
-      } else {
-        alert('닉네임 변경에 실패했습니다. 다시 시도해주세요.');
-      }
-    }
-  };
-
-  const handleChangePassword = () => {
-    navigate('/change-password');
-  };
-
-  const handleGoBack = () => {
-    navigate('/mypage');
-  };
-
   return (
     <div className="edit-profile-container">
       <div className="edit-profile-header">
         <button className="back-button" onClick={handleGoBack}>
-          &larr; Back
+          &larr; 뒤로가기
         </button>
-        <h1>Edit Profile</h1>
+        <h1>프로필 수정</h1>
       </div>
 
       <div className="profile-edit-section">
@@ -170,15 +214,15 @@ const EditProfile = () => {
               </div>
             )}
             <div className="image-overlay">
-              <span>Change</span>
+              <span>변경</span>
             </div>
           </div>
           
           {showProfileOptions && (
             <div className="profile-image-options">
-              <button onClick={handleChangeProfileImage}>Change Profile Photo</button>
-              <button onClick={handleRemoveProfileImage}>Remove Current Photo</button>
-              <button onClick={() => setShowProfileOptions(false)}>Cancel</button>
+              <button onClick={handleChangeProfileImage}>프로필 사진 변경</button>
+              <button onClick={handleRemoveProfileImage}>현재 사진 삭제</button>
+              <button onClick={() => setShowProfileOptions(false)}>취소</button>
             </div>
           )}
           
@@ -186,45 +230,60 @@ const EditProfile = () => {
         </div>
 
         <div className="edit-options">
-          <div className="edit-option">
-            <div className="option-info">
-              <h3>Nickname</h3>
-              {isEditingNickname ? (
-                <form onSubmit={updateNickname} className="nickname-form">
-                  <input
-                    type="text"
-                    value={newNickname}
-                    onChange={(e) => setNewNickname(e.target.value)}
-                    placeholder={userInfo.nickname}
-                  />
-                  <div className="nickname-buttons">
-                    <button type="submit">저장</button>
-                    <button type="button" onClick={() => setIsEditingNickname(false)}>취소</button>
-                  </div>
-                </form>
-              ) : (
-                <p>{userInfo.nickname}</p>
-              )}
-            </div>
-            {!isEditingNickname && (
-              <button onClick={handleChangeNickname}>Change</button>
-            )}
+          <div className="edit-section">
+            <h3 className="section-title">닉네임 변경</h3>
+            <form onSubmit={handleNicknameSubmit} className="edit-form">
+              <div className="form-group">
+                <label htmlFor="nickname">새 닉네임</label>
+                <input
+                  type="text"
+                  id="nickname"
+                  value={newNickname}
+                  onChange={(e) => setNewNickname(e.target.value)}
+                  placeholder="새 닉네임 입력"
+                />
+                {nicknameError && <p className="error-message">{nicknameError}</p>}
+              </div>
+              <button type="submit" className="submit-button">닉네임 변경</button>
+            </form>
           </div>
 
-          <div className="edit-option">
-            <div className="option-info">
-              <h3>Password</h3>
-              <p>••••••••</p>
-            </div>
-            <button onClick={handleChangePassword}>Change</button>
-          </div>
-
-          <div className="edit-option">
-            <div className="option-info">
-              <h3>Email</h3>
-              <p>{userInfo.email}</p>
-            </div>
-            <span className="readonly-label">Read only</span>
+          <div className="edit-section">
+            <h3 className="section-title">비밀번호 변경</h3>
+            <form onSubmit={handlePasswordSubmit} className="edit-form">
+              <div className="form-group">
+                <label htmlFor="currentPassword">현재 비밀번호</label>
+                <input
+                  type="password"
+                  id="currentPassword"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="현재 비밀번호 입력"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="newPassword">새 비밀번호</label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="새 비밀번호 입력"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="confirmPassword">새 비밀번호 확인</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="새 비밀번호 다시 입력"
+                />
+                {passwordError && <p className="error-message">{passwordError}</p>}
+              </div>
+              <button type="submit" className="submit-button">비밀번호 변경</button>
+            </form>
           </div>
         </div>
       </div>

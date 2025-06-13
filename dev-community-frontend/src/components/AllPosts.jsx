@@ -1,11 +1,16 @@
 // src/components/AllPosts.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './PostsPage.css';
+import './TagStyles.css'; // 태그 스타일 추가
+import tags from '../data/tags'; // 태그 목록 import
 
 const AllPosts = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const tagParam = queryParams.get('tag');
 
   // 게시글 목록, 페이지 관리용 상태
   const [posts, setPosts] = useState([]);
@@ -15,24 +20,34 @@ const AllPosts = () => {
 
   // 검색어 상태 추가
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTag, setSelectedTag] = useState(tagParam || '');
 
   // 서버에서 게시글(검색 포함)을 가져오는 함수
-  const fetchPosts = async (page, keyword = '') => {
+  const fetchPosts = async (page, keyword = '', tag = '') => {
     try {
       let response;
 
-      if (keyword && keyword.trim() !== '') {
-        // 검색어가 있을 때: /post/search?query=검색어&page=...&size=...&sort=createdAt,desc
+      if (tag && tag.trim() !== '') {
+        // 태그로 검색 - API 엔드포인트 수정
+        response = await axios.get(`/post/tag/${tag.trim()}`, {
+          params: {
+            page: page - 1,
+            size: postsPerPage,
+            sort: 'createdAt,desc'
+          }
+        });
+      } else if (keyword && keyword.trim() !== '') {
+        // 검색어가 있을 때
         response = await axios.get('/post/search', {
           params: {
             query: keyword.trim(),
-            page: page - 1,       // 백엔드가 0-based 페이지 인덱스를 사용
+            page: page - 1,
             size: postsPerPage,
             sort: 'createdAt,desc'
           }
         });
       } else {
-        // 검색어가 없을 때: /post?page=...&size=...&sort=createdAt,desc
+        // 검색어가 없을 때
         response = await axios.get('/post', {
           params: {
             page: page - 1,
@@ -47,19 +62,39 @@ const AllPosts = () => {
       setTotalPages(response.data.totalPages);
     } catch (error) {
       console.error('전체 게시글 불러오기 실패:', error);
+      setPosts([]);
+      setTotalPages(0);
     }
   };
 
-  // 컴포넌트가 마운트되거나 currentPage가 바뀔 때, 검색어 여부와 상관 없이 fetchPosts 호출
+  // 컴포넌트가 마운트되거나 currentPage, selectedTag가 바뀔 때 fetchPosts 호출
   useEffect(() => {
-    fetchPosts(currentPage, searchTerm);
+    fetchPosts(currentPage, searchTerm, selectedTag);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
+  }, [currentPage, selectedTag]);
 
   // 검색 버튼 클릭 시 호출: 페이지를 1로 초기화하고 fetchPosts 실행
   const handleSearch = () => {
     setCurrentPage(1);
-    fetchPosts(1, searchTerm);
+    setSelectedTag(''); // 태그 선택 초기화
+    fetchPosts(1, searchTerm, '');
+  };
+
+  // 태그 클릭 시 호출
+  const handleTagClick = (tag) => {
+    setSelectedTag(tag);
+    setSearchTerm(''); // 검색어 초기화
+    setCurrentPage(1);
+    // URL 업데이트
+    navigate(`/all-posts?tag=${tag}`);
+  };
+
+  // 태그 검색 취소
+  const clearTagSearch = () => {
+    setSelectedTag('');
+    setCurrentPage(1);
+    navigate('/all-posts');
+    fetchPosts(1, searchTerm, '');
   };
 
   // 페이지 번호 배열 생성 (1부터 totalPages까지)
@@ -80,7 +115,30 @@ const AllPosts = () => {
         <h1>전체 게시글</h1>
       </header>
 
-      {/* 검색바 영역 (CSS 클래스 사용) */}
+      {/* 태그 검색 영역 */}
+      <div className="tag-search-container">
+        <h3 className="tag-search-title">태그로 검색</h3>
+        <div className="tag-search-list">
+          {tags.slice(0, 20).map((tag) => (
+            <span
+              key={tag}
+              className={`tag-item ${selectedTag === tag ? 'selected' : ''}`}
+              onClick={() => handleTagClick(tag)}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+        {selectedTag && (
+          <div style={{ marginTop: '10px' }}>
+            <button onClick={clearTagSearch} className="cancel-btn">
+              태그 검색 취소
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 검색바 영역 */}
       <div className="search-bar-wrap">
         <input
           type="text"
@@ -111,6 +169,23 @@ const AllPosts = () => {
                   {new Date(post.createdAt).toLocaleDateString()}
                 </span>
               </div>
+              {/* 태그 표시 */}
+              {post.tags && post.tags.length > 0 && (
+                <div className="post-tags">
+                  {post.tags.map((tag) => (
+                    <span 
+                      key={tag} 
+                      className="post-tag"
+                      onClick={(e) => {
+                        e.stopPropagation(); // 이벤트 버블링 방지
+                        handleTagClick(tag);
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="post-likes">
               <i className="bx bx-like"></i>
