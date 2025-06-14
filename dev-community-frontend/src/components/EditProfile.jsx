@@ -221,7 +221,7 @@ const EditProfile = () => {
           {showProfileOptions && (
             <div className="profile-image-options">
               <button onClick={handleChangeProfileImage}>프로필 사진 변경</button>
-              <button onClick={handleRemoveProfileImage}>현재 사진 삭제</button>
+              <button onClick={handleRemoveProfileImage}>기본 이미지로 변경</button>
               <button onClick={() => setShowProfileOptions(false)}>취소</button>
             </div>
           )}
