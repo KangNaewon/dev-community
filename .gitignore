@@ -273,3 +273,5 @@ application.properties
 .vscode
 *.properties
 .gitignore
+default.conf
+SecurityConfig.java
