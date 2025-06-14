@@ -71,15 +71,22 @@ public class MemberController {
     }
 
     @PostMapping("/{loginId}/profile-image")
-    public ResponseEntity<String> updateProfileImage(@PathVariable String loginId,
-                                                     @RequestParam("file")MultipartFile file) throws IOException {
-        String imageUrl = memberService.updateProfileImage(loginId, file);
+    public ResponseEntity<String> updateProfileImage(@RequestParam("file")MultipartFile file, HttpSession session) throws IOException {
+        Member currentMember = SessionUtils.getLoginMember(session);
+        if (currentMember == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
+        String imageUrl = memberService.updateProfileImage(currentMember.getLoginId(), file);
         return ResponseEntity.ok(imageUrl);
     }
 
     @DeleteMapping("/{loginId}/profile-image")
-    public ResponseEntity<Void> deleteProfileImage(@PathVariable String loginId) throws IOException {
-        memberService.deleteProfileImage(loginId);
+    public ResponseEntity<Void> deleteProfileImage(HttpSession session) throws IOException {
+        Member currentMember = SessionUtils.getLoginMember(session);
+        if (currentMember == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
+        memberService.deleteProfileImage(currentMember.getLoginId());
         return ResponseEntity.noContent().build();
     }
 }
