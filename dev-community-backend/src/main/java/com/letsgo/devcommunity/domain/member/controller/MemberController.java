@@ -51,15 +51,23 @@ public class MemberController {
     }
 
     @PutMapping("/me/password")
-    public void updatePassword(@RequestBody PasswordUpdateRequestDto passwordUpdateRequestDto, HttpSession session) {
+    public ResponseEntity<Void> updatePassword(@RequestBody PasswordUpdateRequestDto passwordUpdateRequestDto, HttpSession session) {
         Member currentMember = SessionUtils.getLoginMember(session);
+        if (currentMember == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
         memberService.updatePassword(currentMember.getId(), passwordUpdateRequestDto);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/me/nickname")
-    public void updateNickname(@RequestBody NicknameUpdateRequestDto nicknameUpdateRequestDto, HttpSession session) {
+    public ResponseEntity<Void> updateNickname(@RequestBody NicknameUpdateRequestDto nicknameUpdateRequestDto, HttpSession session) {
         Member currentMember = SessionUtils.getLoginMember(session);
+        if (currentMember == null) {
+            throw new IllegalArgumentException("로그인이 필요합니다.");
+        }
         memberService.updateNickname(currentMember.getId(), nicknameUpdateRequestDto);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{loginId}/profile-image")
