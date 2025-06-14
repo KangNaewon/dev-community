@@ -5,7 +5,6 @@ import com.letsgo.devcommunity.domain.auth.dto.SignUpRequest;
 import com.letsgo.devcommunity.domain.auth.email.EmailVerificationStore;
 import com.letsgo.devcommunity.domain.member.entity.Member;
 import com.letsgo.devcommunity.domain.auth.repository.AuthRepository;
-import com.letsgo.devcommunity.global.common.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

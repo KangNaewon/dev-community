@@ -108,6 +108,10 @@ public class MemberService {
             throw new IllegalArgumentException("파일이 비어있거나 존재하지 않습니다.");
         }
 
+        if (file.getContentType().startsWith("image/")) {
+            throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다.");
+        }
+
         Member member = memberRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException(CANNOT_FIND_ME));
 
@@ -124,6 +128,7 @@ public class MemberService {
         return imageUrl;
     }
 
+    @Transactional
     public void deleteProfileImage(String loginId) throws IOException {
         Member member = memberRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new IllegalArgumentException(CANNOT_FIND_ME));
