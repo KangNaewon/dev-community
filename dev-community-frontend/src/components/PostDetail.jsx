@@ -49,18 +49,7 @@ const PostDetail = () => {
   // 현재 사용자가 게시글 작성자인지 확인하는 함수 수정
   const isAuthor = userInfo && post && userInfo.id === post.author.id;
 
-  // 수정 버튼 핸들러 확인
-  const handleEdit = () => {
-    navigate(`/edit-post/${postId}`);
-  };
-
-  // JSX에서 수정/삭제 버튼 표시 부분 확인
-  {isAuthor && (
-    <div className="post-actions">
-      <button onClick={handleEdit} className="edit-button">수정</button>
-      <button onClick={handleDelete} className="delete-button">삭제</button>
-    </div>
-  )}
+  // ★★★ handleDelete 함수를 다른 함수들과 함께 JSX return 문 이전에 배치 ★★★
   const handleDelete = async () => {
     if (window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
       try {
@@ -90,6 +79,11 @@ const PostDetail = () => {
         }
       }
     }
+  };
+
+  // 수정 버튼 핸들러 확인 (handleDelete 위에 위치)
+  const handleEdit = () => {
+    navigate(`/edit-post/${postId}`);
   };
 
   const handleLike = async () => {
@@ -251,7 +245,7 @@ const PostDetail = () => {
       setReplyingTo(null);
     } catch (error) {
       console.error('답글 작성 실패:', error);
-      /*const dummyReply = {
+      /*const dummyReply = { // 더미 데이터는 실제 API 연동 시 제거하거나 개발 목적으로만 사용
         id: Date.now(),
         content: newReply,
         author: '현재 사용자',
@@ -263,7 +257,7 @@ const PostDetail = () => {
           comment.id === commentId
             ? {
                 ...comment,
-                replies: [...(comment.replies || [])/*, dummyReply*/]
+                replies: [...(comment.replies || [])/*, dummyReply*/] // 주석 처리된 dummyReply 부분도 실제 API 응답으로 대체해야 함
               }
             : comment
         )

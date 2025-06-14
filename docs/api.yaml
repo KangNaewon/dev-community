@@ -299,7 +299,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  userId:
+                  id:
                     type: integer
                   loginId:
                     type: string
