@@ -45,15 +45,20 @@ const MainPage = () => {
 
   // 데이터 가져오기
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (user) {
+    const fetchUser = async () => {
+      // 로컬스토리지에서 loginId 가져오기
+      const userStr = localStorage.getItem('user');
+      if (!userStr) return;
+      const user = JSON.parse(userStr);
       try {
-        const parsedUser = JSON.parse(user);
-        setNickname(parsedUser.nickname);
+        // loginId 기반으로 사용자 정보 조회
+        const response = await axios.get(`/member/${user.loginId}`);
+        setNickname(response.data.nickname);
       } catch (e) {
-        console.error('유저 정보 파싱 실패', e);
+        console.error('유저 정보 로딩 실패', e);
       }
-    }
+    };
+    fetchUser();
 
     const fetchPosts = async () => {
       try {
