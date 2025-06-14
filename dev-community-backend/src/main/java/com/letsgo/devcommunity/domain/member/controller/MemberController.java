@@ -7,8 +7,11 @@ import com.letsgo.devcommunity.domain.member.service.MemberService;
 import com.letsgo.devcommunity.global.util.SessionUtils;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -43,5 +46,18 @@ public class MemberController {
     @GetMapping("/{loginId}/followings")
     public List<FollowMemberResponse> getFollowings(@PathVariable String loginId) {
         return memberService.getFollowings(loginId);
+    }
+
+    @PostMapping("/{loginId}/profile-image")
+    public ResponseEntity<String> updateProfileImage(@PathVariable String loginId,
+                                                     @RequestParam("file")MultipartFile file) throws IOException {
+        String imageUrl = memberService.updateProfileImage(loginId, file);
+        return ResponseEntity.ok(imageUrl);
+    }
+
+    @DeleteMapping("/{loginId}/profile-image")
+    public ResponseEntity<Void> deleteProfileImage(@PathVariable String loginId) throws IOException {
+        memberService.deleteProfileImage(loginId);
+        return ResponseEntity.noContent().build();
     }
 }
