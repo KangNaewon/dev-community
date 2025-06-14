@@ -62,7 +62,7 @@ class MemberServiceTest {
         String loginId = member.getLoginId();
         int followerCount = 10;
         int followingCount = 5;
-        Long receivedLikeCount = 20L;
+        long receivedLikeCount = 20L;
 
         when(memberRepository.findByLoginId(loginId)).thenReturn(Optional.of(member));
         when(followRepository.countByToMember(member)).thenReturn(followerCount);

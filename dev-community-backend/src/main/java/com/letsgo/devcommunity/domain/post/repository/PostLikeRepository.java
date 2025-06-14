@@ -20,5 +20,5 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     int countByPostId(Long postId);
 
     @Query("SELECT COUNT(pl) FROM PostLike pl, Post p WHERE pl.postId = p.id AND p.userId = :memberId")
-    Long countLikesReceivedByMember(@Param("memberId") Long memberId);
+    long countLikesReceivedByMember(@Param("memberId") Long memberId);
 }
