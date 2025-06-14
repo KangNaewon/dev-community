@@ -1,6 +1,7 @@
 package com.letsgo.devcommunity.domain.member.service;
 
 import com.letsgo.devcommunity.domain.member.dto.FollowMemberResponse;
+import com.letsgo.devcommunity.domain.member.dto.PasswordUpdateRequestDto;
 import com.letsgo.devcommunity.domain.member.entity.Follow;
 import com.letsgo.devcommunity.domain.member.entity.Member;
 import com.letsgo.devcommunity.domain.member.repository.FollowRepository;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,6 +42,9 @@ class MemberServiceTest {
 
     @Mock
     private FileStorageService fileStorageService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder; // PasswordEncoder Mock 객체 추가
 
     @InjectMocks
     private MemberService memberService;
@@ -706,6 +711,218 @@ class MemberServiceTest {
         verify(memberRepository).findByLoginId(loginId);
         verify(fileStorageService, never()).deleteFile(anyString());
         verify(memberRepository, never()).save(any(Member.class));
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 성공")
+    void updatePassword_Success() {
+        // given
+        Member member = TestDataFactory.createDefaultMember();
+        String originalEncodedPassword = member.getPassword();
+
+        PasswordUpdateRequestDto requestDto = new PasswordUpdateRequestDto();
+        requestDto.setCurrentPassword("currentPassword");
+        requestDto.setNewPassword("newPasswordA1!");
+
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches(requestDto.getCurrentPassword(), originalEncodedPassword)).thenReturn(true);
+        when(passwordEncoder.encode(requestDto.getNewPassword())).thenReturn("encodedNewPassword");
+
+        // when
+        assertDoesNotThrow(() -> memberService.updatePassword(member.getId(), requestDto));
+
+        // then
+        verify(memberRepository).findById(member.getId());
+        verify(passwordEncoder).matches(requestDto.getCurrentPassword(), originalEncodedPassword);
+        verify(passwordEncoder).encode(requestDto.getNewPassword());
+        assertThat(member.getPassword()).isEqualTo("encodedNewPassword");
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패: 사용자 조회 실패")
+    void updatePassword_Failure_MemberNotFound() {
+        // given
+        Long memberId = 1L;
+        PasswordUpdateRequestDto requestDto = new PasswordUpdateRequestDto();
+        requestDto.setCurrentPassword("currentPassword");
+        requestDto.setNewPassword("newPasswordA1!");
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
+
+        // when
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.updatePassword(memberId, requestDto)
+        );
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo(NOT_FOUND_MEMBER);
+        verify(memberRepository).findById(memberId);
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+        verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패: 현재 비밀번호 불일치")
+    void updatePassword_Failure_CurrentPasswordMismatch() {
+        // given
+        Member member = TestDataFactory.createDefaultMember();
+        PasswordUpdateRequestDto requestDto = new PasswordUpdateRequestDto();
+        requestDto.setCurrentPassword("wrongCurrentPassword");
+        requestDto.setNewPassword("newPasswordA1!");
+
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches(requestDto.getCurrentPassword(), member.getPassword())).thenReturn(false);
+
+        // when
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.updatePassword(member.getId(), requestDto)
+        );
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo("현재 비밀번호가 일치하지 않습니다.");
+        verify(memberRepository).findById(member.getId());
+        verify(passwordEncoder).matches(requestDto.getCurrentPassword(), member.getPassword());
+        verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패: 새 비밀번호가 너무 짧음")
+    void updatePassword_Failure_InvalidNewPassword_TooShort() {
+        // given
+        Member member = TestDataFactory.createDefaultMember();
+        PasswordUpdateRequestDto requestDto = new PasswordUpdateRequestDto();
+        requestDto.setCurrentPassword("currentPassword");
+        requestDto.setNewPassword("newA1!"); // 6 chars
+
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches(requestDto.getCurrentPassword(), member.getPassword())).thenReturn(true);
+
+        // when
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.updatePassword(member.getId(), requestDto)
+        );
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo("비밀번호는 8자 이상 20자 이하로 입력해주세요.");
+        verify(memberRepository).findById(member.getId());
+        verify(passwordEncoder).matches(requestDto.getCurrentPassword(), member.getPassword());
+        verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패: 새 비밀번호가 너무 긺")
+    void updatePassword_Failure_InvalidNewPassword_TooLong() {
+        // given
+        Member member = TestDataFactory.createDefaultMember();
+        PasswordUpdateRequestDto requestDto = new PasswordUpdateRequestDto();
+        requestDto.setCurrentPassword("currentPassword");
+        requestDto.setNewPassword("newPasswordA1!newPasswordA1!newPasswordA1!"); // 24 chars
+
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches(requestDto.getCurrentPassword(), member.getPassword())).thenReturn(true);
+
+        // when
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.updatePassword(member.getId(), requestDto)
+        );
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo("비밀번호는 8자 이상 20자 이하로 입력해주세요.");
+        verify(memberRepository).findById(member.getId());
+        verify(passwordEncoder).matches(requestDto.getCurrentPassword(), member.getPassword());
+        verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패: 새 비밀번호에 대문자 없음")
+    void updatePassword_Failure_InvalidNewPassword_NoUpperCase() {
+        // given
+        Member member = TestDataFactory.createDefaultMember();
+        PasswordUpdateRequestDto requestDto = new PasswordUpdateRequestDto();
+        requestDto.setCurrentPassword("currentPassword");
+        requestDto.setNewPassword("newpassword1!");
+
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches(requestDto.getCurrentPassword(), member.getPassword())).thenReturn(true);
+
+        // when
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.updatePassword(member.getId(), requestDto)
+        );
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo("비밀번호는 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다.");
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패: 새 비밀번호에 소문자 없음")
+    void updatePassword_Failure_InvalidNewPassword_NoLowerCase() {
+        // given
+        Member member = TestDataFactory.createDefaultMember();
+        PasswordUpdateRequestDto requestDto = new PasswordUpdateRequestDto();
+        requestDto.setCurrentPassword("currentPassword");
+        requestDto.setNewPassword("NEWPASSWORD1!");
+
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches(requestDto.getCurrentPassword(), member.getPassword())).thenReturn(true);
+
+        // when
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.updatePassword(member.getId(), requestDto)
+        );
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo("비밀번호는 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다.");
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패: 새 비밀번호에 숫자 없음")
+    void updatePassword_Failure_InvalidNewPassword_NoDigit() {
+        // given
+        Member member = TestDataFactory.createDefaultMember();
+        PasswordUpdateRequestDto requestDto = new PasswordUpdateRequestDto();
+        requestDto.setCurrentPassword("currentPassword");
+        requestDto.setNewPassword("newPasswordA!");
+
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches(requestDto.getCurrentPassword(), member.getPassword())).thenReturn(true);
+
+        // when
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.updatePassword(member.getId(), requestDto)
+        );
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo("비밀번호는 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다.");
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패: 새 비밀번호에 특수문자 없음")
+    void updatePassword_Failure_InvalidNewPassword_NoSpecialChar() {
+        // given
+        Member member = TestDataFactory.createDefaultMember();
+        PasswordUpdateRequestDto requestDto = new PasswordUpdateRequestDto();
+        requestDto.setCurrentPassword("currentPassword");
+        requestDto.setNewPassword("newPasswordA1");
+
+        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches(requestDto.getCurrentPassword(), member.getPassword())).thenReturn(true);
+
+        // when
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> memberService.updatePassword(member.getId(), requestDto)
+        );
+
+        // then
+        assertThat(exception.getMessage()).isEqualTo("비밀번호는 영문 대/소문자, 숫자, 특수문자를 모두 포함해야 합니다.");
     }
 
 }
