@@ -119,7 +119,7 @@ const AllPosts = () => {
     <div className="posts-page">
       {/* 뒤로 돌아가기 + 제목 */}
       <header className="posts-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>
+        <button className="back-btn" onClick={() => navigate('/main')}>
           <i className="bx bx-arrow-back"></i>
         </button>
         <h1>전체 게시글</h1>

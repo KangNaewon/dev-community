@@ -115,7 +115,7 @@ const CreatePost = () => {
               initialValue={content}
               previewStyle="vertical"
               height="300px"
-              initialEditType="wysiwyg"
+              initialEditType=""
               hideModeSwitch
               useCommandShortcut
               onChange={() => {

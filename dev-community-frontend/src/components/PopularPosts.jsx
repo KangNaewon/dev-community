@@ -74,7 +74,7 @@ const PopularPosts = () => {
     <div className="posts-page">
       {/* 헤더: 뒤로가기 + 제목 */}
       <header className="posts-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>
+        <button className="back-btn" onClick={() => navigate('/main')}>
           <i className="bx bx-arrow-back"></i>
         </button>
         <h1>인기 게시글</h1>
