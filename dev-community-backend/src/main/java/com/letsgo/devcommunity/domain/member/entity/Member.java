@@ -68,6 +68,14 @@ public class Member implements Serializable {
                 .build();
     }
 
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+    }
+
+    public void updateNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

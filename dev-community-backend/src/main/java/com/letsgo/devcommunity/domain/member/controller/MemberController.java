@@ -2,6 +2,8 @@ package com.letsgo.devcommunity.domain.member.controller;
 
 import com.letsgo.devcommunity.domain.member.dto.FollowMemberResponse;
 import com.letsgo.devcommunity.domain.member.dto.MemberProfileResponse;
+import com.letsgo.devcommunity.domain.member.dto.NicknameUpdateRequestDto;
+import com.letsgo.devcommunity.domain.member.dto.PasswordUpdateRequestDto;
 import com.letsgo.devcommunity.domain.member.entity.Member;
 import com.letsgo.devcommunity.domain.member.service.MemberService;
 import com.letsgo.devcommunity.global.util.SessionUtils;
@@ -46,6 +48,18 @@ public class MemberController {
     @GetMapping("/{loginId}/followings")
     public List<FollowMemberResponse> getFollowings(@PathVariable String loginId) {
         return memberService.getFollowings(loginId);
+    }
+
+    @PutMapping("/me/password")
+    public void updatePassword(@RequestBody PasswordUpdateRequestDto passwordUpdateRequestDto, HttpSession session) {
+        Member currentMember = SessionUtils.getLoginMember(session);
+        memberService.updatePassword(currentMember.getId(), passwordUpdateRequestDto);
+    }
+
+    @PutMapping("/me/nickname")
+    public void updateNickname(@RequestBody NicknameUpdateRequestDto nicknameUpdateRequestDto, HttpSession session) {
+        Member currentMember = SessionUtils.getLoginMember(session);
+        memberService.updateNickname(currentMember.getId(), nicknameUpdateRequestDto);
     }
 
     @PostMapping("/{loginId}/profile-image")
