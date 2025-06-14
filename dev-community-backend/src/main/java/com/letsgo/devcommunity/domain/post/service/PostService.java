@@ -42,6 +42,7 @@ public class PostService {
         this.httpSession = httpSession;
     }
 
+    // POST: 게시물 생성하기
     public CreateResponseDto createPost(UpdateDto updateDto) {
         Member loginMember = SessionUtils.getLoginMember(httpSession);
         Post post = new Post();
@@ -64,12 +65,13 @@ public class PostService {
         return new CreateResponseDto(post.getId(), post.getCreatedAt());
     }
 
-    // 게시글 id
+    // GET: 게시글 id로 게시글 조회하기
     public Post findById(Long id) {
         return postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
     }
 
+    // GET: 모든 게시글 반환하기 (Pageable)
     public PostListDto findAll(Integer page, Integer size, String sort) {
         String[] sortParams = sort.split(",");
         String sortBy = sortParams[0];
@@ -110,6 +112,7 @@ public class PostService {
         );
     }
 
+    // PUT: 게시글 수정하기
     public UpdateResponseDto updatePost(Long id, UpdateDto updateDto) {
         Post post = findById(id);
         post.setTitle(updateDto.getTitle());
@@ -156,11 +159,13 @@ public class PostService {
 
         return new UpdateResponseDto(post.getId(), post.getUpdatedAt());
     }
-
+    
+    // DELETE: 게시글 삭제하기
     public void deletePost(Long id) {
         postRepository.deleteById(id);
     }
 
+    // POST: 댓글 작성하기
     public CreateResponseDto createComment(Long postId, CreateCommentDto content) {
         Comment comment = new Comment();
         comment.setContent(content.getContent());
@@ -171,10 +176,12 @@ public class PostService {
         return new CreateResponseDto(comment.getId(), comment.getCreated_at());
     }
 
+    // DELETE: 댓글 삭제하기
     public void deleteComment(Long id) {
         commentRepository.deleteById(id);
     }
 
+    // POST: 좋아요 누르기
     public void createPostLike(Long postId) {
         Member loginMember = SessionUtils.getLoginMember(httpSession);
         if (postRepository.findById(postId).isPresent()) {
@@ -188,7 +195,8 @@ public class PostService {
             }
         }
     }
-
+    
+    // DELETE: 좋아요 삭제하기
     public void deletePostLike(Long postId) {
         Member loginMember = SessionUtils.getLoginMember(httpSession);
         if (postRepository.findById(postId).isPresent()) {
@@ -202,11 +210,13 @@ public class PostService {
             }
         }
     }
-
+    
+    // GET: 특정 user_id가 작성한 게시글 찾기
     public List<Post> getUserPosts(Long userId){
         return postRepository.findAllByUserId(userId);
     }
-
+    
+    // GET: 특섲 user_id가 좋아요 누른 게시글 찾기
     public List<Post> getUserPostLike(Long userId){
         List<PostLike> likeList = postLikeRepository.findAllByUserId(userId);
         if(!likeList.isEmpty()){
@@ -215,7 +225,8 @@ public class PostService {
         }
         return new ArrayList<>();
     }
-
+    
+    // GET: postID로 게시글 상세 조회하기
     public PostDto getOnePost(Long postId) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty()){
@@ -251,7 +262,8 @@ public class PostService {
 
         return new PostDto(post.get(), authorDTO, likeCount, isLiked, commentDtos, tagNames);
     }
-
+    
+    // GET: 게시글 검색하기
     public PostListDto search(String query, Pageable pageable) {
         Page<Post> postPage = postRepository.findByTitleContainingOrContentContaining(query, query, pageable);
         List<ContentDto> contentList = postPage.getContent().stream()
@@ -285,7 +297,8 @@ public class PostService {
                 contentList
         );
     }
-
+    
+    // GET: 태그 기반 게시글 검색
     public PostListDto tagSearch(String query, Pageable pageable){
         final var tag = tagRepository.findByTagName(query);
         if (tag.isEmpty()) {
