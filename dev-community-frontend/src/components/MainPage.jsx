@@ -44,7 +44,7 @@ const MainPage = () => {
               page: 0,
               size: 8,
               // sort: 'recommendCount,desc'
-              //  sort: 'likeCount,desc'
+              //  sort: 'likeCount,desc'
             }
           });
           // 프론트에서 likeCount 기준으로 정렬
@@ -68,9 +68,9 @@ const MainPage = () => {
           console.error('서버 연결 실패, 더미 데이터 사용:', error);
           // 서버 연결 실패 시 더미 데이터 사용
           /* setPopularPosts(dummyPosts.sort((a, b) => b.recommendCount - a.recommendCount));
-          setAllPosts(dummyPosts.sort((a, b) => 
-            new Date(b.createdAt) - new Date(a.createdAt)
-          ));*/
+           setAllPosts(dummyPosts.sort((a, b) => 
+             new Date(b.createdAt) - new Date(a.createdAt)
+           ));*/
         }
 
         setLoading(false);
@@ -103,7 +103,7 @@ const MainPage = () => {
   };
 
   const handlePostClick = (id) => {
-    navigate(`/post/${id}`);  // 이 부분이 제대로 동작하는지 확인
+    navigate(`/post/${id}`);  // 이 부분이 제대로 동작하는지 확인
   };
 
   return (
@@ -268,8 +268,8 @@ const MainPage = () => {
               </div>
             </section>
             
-            
-            <div className="sidebar-section">
+            {/* 이 아래에 있던 중복 태그 섹션을 제거했습니다. */}
+            {/* <div className="sidebar-section">
               <h3>태그</h3>
               <div className="tag-cloud">
                 {tags.map((tag) => (
@@ -283,6 +283,7 @@ const MainPage = () => {
                 ))}
               </div>
             </div>
+            */}
           </div>
         )}
 
