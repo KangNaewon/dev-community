@@ -92,7 +92,7 @@ const EditProfile = () => {
 
                     const newImageUrl = response.data.profileImageUrl;
 
-                    setUserInfo(prevInfo => ({ // 이전 상태를 기반으로 업데이트
+                    setUserInfo(prevInfo => ({
                         ...prevInfo,
                         profileImageUrl: newImageUrl
                     }));
