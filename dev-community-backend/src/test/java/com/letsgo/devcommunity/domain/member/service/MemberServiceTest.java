@@ -54,8 +54,6 @@ class MemberServiceTest {
     @InjectMocks
     private MemberService memberService;
 
-    // TODO: 프로필 조회 기능 구현 (본인이 받은 총 추천 수 기능) 후 테스트 추가 예정
-
     @Test
     @DisplayName("프로필 조회 성공")
     void getProfile_Success() {
@@ -64,7 +62,7 @@ class MemberServiceTest {
         String loginId = member.getLoginId();
         int followerCount = 10;
         int followingCount = 5;
-        int receivedLikeCount = 20;
+        Long receivedLikeCount = 20L;
 
         when(memberRepository.findByLoginId(loginId)).thenReturn(Optional.of(member));
         when(followRepository.countByToMember(member)).thenReturn(followerCount);

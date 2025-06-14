@@ -39,7 +39,7 @@ public class MemberService {
                 .orElseThrow(() -> new IllegalArgumentException(NOT_FOUND_MEMBER));
         int followerCount = followRepository.countByToMember(member);
         int followingCount = followRepository.countByFromMember(member);
-        int receivedLikeCount = postLikeRepository.countLikesReceivedByMember(member.getId());
+        Long receivedLikeCount = postLikeRepository.countLikesReceivedByMember(member.getId());
 
         return new MemberProfileResponse(
                 member.getNickname(),
