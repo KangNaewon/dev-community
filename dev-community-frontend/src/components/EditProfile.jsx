@@ -22,16 +22,13 @@ const EditProfile = () => {
     const navigate = useNavigate();
 
     // 초기 사용자 정보 로드 (프로필 이미지 포함)
-    useEffect(() => {
-        const userStr = localStorage.getItem('user');
-        if (!userStr) {
-            navigate('/login');
-            return;
-        }
-
-        const user = JSON.parse(userStr);
-
-        const fetchUserInfo = async () => {
+    const fetchUserInfo = async () => {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) {
+          navigate('/login');
+          return;
+      }
+      const user = JSON.parse(userStr);
             try {
                 // 백엔드에서 전체 사용자 정보(프로필 이미지 URL 포함)를 가져옵니다.
                 // 이 API는 명세에 없지만, 마이페이지에서 사용한다면 있어야 합니다.
@@ -53,7 +50,8 @@ const EditProfile = () => {
             }
         };
 
-        fetchUserInfo();
+    useEffect(() => {
+    fetchUserInfo();
     }, [navigate]);
 
     // 로컬 스토리지에 사용자 정보 업데이트하는 헬퍼 함수
@@ -144,21 +142,7 @@ const EditProfile = () => {
         try {
             const response = await axios.put('/member/me/nickname', { nickname: newNickname });
 
-            const updatedNickname = response.data.nickname;
-
-            setUserInfo(prevInfo => ({
-                ...prevInfo,
-                nickname: updatedNickname
-            }));
-
-            // 로컬 스토리지의 닉네임도 업데이트 (선택 사항이지만 일관성을 위해 추천)
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                const updatedUser = { ...user, nickname: updatedNickname };
-                localStorage.setItem('user', JSON.stringify(updatedUser));
-            }
-
+            await fetchUserInfo(); // 최신 정보 반영
 
             setNewNickname('');
             setNicknameError('');

@@ -82,7 +82,8 @@ const LoginComponent = () => {
         localStorage.setItem('user', JSON.stringify({
           id: id, // 서버에서 받은 'id'를 그대로 저장
           loginId: loginId,
-          nickname: nickname
+          nickname: nickname,
+          profileImageUrl: "https://play-lh.googleusercontent.com/38AGKCqmbjZ9OuWx4YjssAz3Y0DTWbiM5HB0ove1pNBq_o9mtWfGszjZNxZdwt_vgHo=w240-h480-rw"
         }));
 
         console.log("6. Stored in localStorage:", localStorage.getItem('user'));

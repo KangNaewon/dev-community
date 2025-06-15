@@ -5,34 +5,6 @@ import './MainPageStyles.css';
 import './TagStyles.css'; // 태그 스타일 추가
 import tags from '../data/tags'; // 태그 목록 import
 
-// 더미 데이터 정의
-/*const dummyPosts = [
-  {
-    id: 1,
-    title: "React 상태관리의 모든 것",
-    content: "React에서 상태관리를 효율적으로 하는 방법을 알아봅시다...",
-    author: {
-      id: "user1",
-      nickname: "개발왕"
-    },
-    recommendCount: 100,
-    createdAt: "2024-01-15T09:00:00",
-    comments: []
-  },
-  {
-    id: 2,
-    title: "Spring Boot 시작하기",
-    content: "Spring Boot로 백엔드 개발을 시작해봅시다...",
-    author: {
-      id: "user2",
-      nickname: "백엔드개발자"
-    },
-    recommendCount: 120,
-    createdAt: "2024-01-14T15:30:00",
-    comments: []
-  },
-  // ... 더 많은 더미 게시글 추가 가능
-];*/
 
 const MainPage = () => {
   const navigate = useNavigate();
@@ -45,62 +17,50 @@ const MainPage = () => {
 
   // 데이터 가져오기
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (user) {
+    const fetchUser = async () => {
+      // 로컬스토리지에서 loginId 가져오기
+      const userStr = localStorage.getItem('user');
+      if (!userStr) return;
+      const user = JSON.parse(userStr);
       try {
-        const parsedUser = JSON.parse(user);
-        setNickname(parsedUser.nickname);
+        // loginId 기반으로 사용자 정보 조회
+        const response = await axios.get(`/member/${user.loginId}`);
+        setNickname(response.data.nickname);
       } catch (e) {
-        console.error('유저 정보 파싱 실패', e);
+        console.error('유저 정보 로딩 실패', e);
       }
-    }
+    };
+    fetchUser();
 
     const fetchPosts = async () => {
+      setLoading(true); // 로딩 시작은 여기서 한 번만
+
       try {
-        setLoading(true);
+        // 1. 인기 게시글 먼저 가져오기 (순차 처리)
+        const popularResponse = await axios.get('/post', {
+          params: {
+            page: 0,
+            size: 8,
+            sort: 'likeCounts,desc'
+          }
+        });
+        setPopularPosts(popularResponse.data.content);
 
-        // 서버 요청 시도
-        try {
-          // 인기 게시글 가져오기
-          const popularResponse = await axios.get('/post', {
-            params: {
-              page: 0,
-              size: 8,
-              // sort: 'recommendCount,desc'
-              //  sort: 'likeCount,desc'
-            }
-          });
-          // 프론트에서 likeCount 기준으로 정렬
-          const sortedByLikeCount = popularResponse.data.content
-            .slice() // 원본 배열 복사
-            .sort((a, b) => b.likeCount - a.likeCount);
+        // 2. 인기 게시글 로드 완료 후, 전체 게시글 가져오기 (순차 처리)
+        const allPostsResponse = await axios.get('/post', {
+          params: {
+            page: 0,
+            size: 8,
+            sort: 'createdAt,desc'
+          }
+        });
+        setAllPosts(allPostsResponse.data.content);
 
-          // 상위 8개만 선택
-          setPopularPosts(sortedByLikeCount.slice(0, 8));
-
-          // 전체 게시글 가져오기
-          const allPostsResponse = await axios.get('/post', {
-            params: {
-              page: 0,
-              size: 8,
-              sort: 'createdAt,desc'
-            }
-          });
-          setAllPosts(allPostsResponse.data.content);
-        } catch (error) {
-          console.error('서버 연결 실패, 더미 데이터 사용:', error);
-          // 서버 연결 실패 시 더미 데이터 사용
-          /* setPopularPosts(dummyPosts.sort((a, b) => b.recommendCount - a.recommendCount));
-          setAllPosts(dummyPosts.sort((a, b) => 
-            new Date(b.createdAt) - new Date(a.createdAt)
-          ));*/
-        }
-
-        setLoading(false);
-      } catch (error) {
+      } catch (error) { // 모든 에러를 여기서 처리
         console.error('게시글 로딩 실패:', error);
-        setError('게시글을 불러오는데 실패했습니다.');
-        setLoading(false);
+        setError('게시글을 불러오는데 실패했습니다. 서버 연결을 확인해주세요.');
+      } finally {
+        setLoading(false); // 성공하든 실패하든 로딩 상태를 false로 변경
       }
     };
 
@@ -126,7 +86,7 @@ const MainPage = () => {
   };
 
   const handlePostClick = (id) => {
-    navigate(`/post/${id}`);  // 이 부분이 제대로 동작하는지 확인
+    navigate(`/post/${id}`);
   };
 
   return (
@@ -220,7 +180,7 @@ const MainPage = () => {
                       </div>
                       <div className="post-likes">
                         <i className="bx bx-like"></i>
-                        <span>{post.likeCount}</span>
+                        <span>{post.likeCount}</span> 
                       </div>
                     </div>
                   ))
@@ -291,8 +251,8 @@ const MainPage = () => {
               </div>
             </section>
             
-            
-            <div className="sidebar-section">
+            {/* 이 아래에 있던 중복 태그 섹션을 제거했습니다. */}
+            {/* <div className="sidebar-section">
               <h3>태그</h3>
               <div className="tag-cloud">
                 {tags.map((tag) => (
@@ -306,6 +266,7 @@ const MainPage = () => {
                 ))}
               </div>
             </div>
+            */}
           </div>
         )}
 
